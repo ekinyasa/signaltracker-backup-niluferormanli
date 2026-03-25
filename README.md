@@ -21,6 +21,8 @@ The "Nilüfer Ormanlı" Orchestra-v1 system is now ready. It provides a lightwei
    - **Environment Variables / Bindings:**
      - Go to Settings -> Functions -> **KV Namespace Bindings**.
      - Add a binding named `CONFIG_KV` and select your KV namespace.
+     - Go to Settings -> **Variables and Secrets**.
+     - Add a Variable named `ADMIN_TOKEN` and set it to a secure password of your choice.
 
 2. **Domains:**
    - Point `scripts.niluferormanli.studio` (Primary) and `backup-scripts.niluferormanli.studio` (Backup) to your Cloudflare Pages deployment.
