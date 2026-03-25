@@ -8,6 +8,12 @@ interface TrackingConfig {
 const form = document.getElementById('configForm') as HTMLFormElement;
 const statusEl = document.getElementById('status')!;
 const tokenInput = document.getElementById('adminToken') as HTMLInputElement;
+const primaryStatusEl = document.getElementById('primaryStatus')!;
+const backupStatusEl = document.getElementById('backupStatus')!;
+const overallHealthEl = document.getElementById('overallHealth')!;
+
+const PRIMARY_URL = 'https://scripts.niluferormanli.studio/assets/global.js';
+const BACKUP_URL = 'https://backup-scripts.niluferormanli.studio/assets/global.js';
 
 // Load token from localStorage if exists
 const storedToken = localStorage.getItem('COS_ADMIN_TOKEN');
@@ -72,4 +78,37 @@ form.addEventListener('submit', async (e) => {
     }
 });
 
+async function checkHealth() {
+    const check = async (url: string, el: HTMLElement) => {
+        try {
+            const start = Date.now();
+            await fetch(url, { method: 'HEAD', mode: 'no-cors', cache: 'no-cache' });
+            const duration = Date.now() - start;
+            el.textContent = `Online (${duration}ms)`;
+            el.style.color = '#10b981';
+            return true;
+        } catch (e) {
+            el.textContent = 'Offline';
+            el.style.color = '#ef4444';
+            return false;
+        }
+    };
+
+    const p = await check(PRIMARY_URL, primaryStatusEl);
+    const b = await check(BACKUP_URL, backupStatusEl);
+
+    if (p && b) {
+        overallHealthEl.textContent = 'SYSTEM HEALTHY';
+        overallHealthEl.style.color = '#10b981';
+    } else if (p || b) {
+        overallHealthEl.textContent = 'DEGRADED PERFORMANCE (FALLBACK ACTIVE)';
+        overallHealthEl.style.color = '#f59e0b';
+    } else {
+        overallHealthEl.textContent = 'CRITICAL: ALL SYSTEMS OFFLINE';
+        overallHealthEl.style.color = '#ef4444';
+    }
+}
+
 loadConfig();
+checkHealth();
+setInterval(checkHealth, 30000); // Check every 30 seconds

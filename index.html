@@ -75,6 +75,19 @@
 <body>
     <div class="container">
         <h1>Orchestra-v1 Admin</h1>
+        <div id="healthStatus" style="margin-top: 1.5rem; padding: 1rem; background: rgba(15, 23, 42, 0.5); border-radius: 0.5rem; border: 1px solid #334155;">
+            <div style="font-size: 0.75rem; color: #94a3b8; margin-bottom: 0.5rem; font-weight: 600; text-transform: uppercase;">Infrastructure Health</div>
+            <div style="display: flex; justify-content: space-between; font-size: 0.875rem; margin-bottom: 0.25rem;">
+                <span>Primary CDN</span>
+                <span id="primaryStatus" style="color: #64748b;">Checking...</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; font-size: 0.875rem;">
+                <span>Backup CDN</span>
+                <span id="backupStatus" style="color: #64748b;">Checking...</span>
+            </div>
+            <div id="overallHealth" style="margin-top: 0.75rem; text-align: center; font-weight: 700; font-size: 0.875rem;"></div>
+        </div>
+
         <form id="configForm">
             <div class="field">
                 <label>Admin Token (Security)</label>
