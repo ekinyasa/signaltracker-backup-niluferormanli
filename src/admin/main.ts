@@ -15,6 +15,7 @@ const appMain = document.getElementById('appMain')!;
 const loginGate = document.getElementById('loginGate')!;
 const appHeader = document.getElementById('appHeader')!;
 const appSidebar = document.getElementById('appSidebar')!;
+const projectSelect = document.getElementById('projectSelect') as HTMLSelectElement;
 
 const configForm = document.getElementById('configForm') as HTMLFormElement;
 const systemStatusValue = document.getElementById('systemStatusValue')!;
@@ -69,28 +70,51 @@ async function loadProjects() {
         });
         if (res.status === 401) return showLogin();
         projects = await res.json();
-        renderSidebar();
-        if (projects.length > 0) switchProject(projects[0].id);
+        
+        renderSelectors();
+        
+        if (projects.length > 0 && !currentProject) {
+            switchProject(projects[0].id);
+        }
     } catch (e) {
         showToast('Failed to load projects', 'error');
     }
 }
 
-function renderSidebar() {
+function renderSelectors() {
+    // Populate Sidebar
     sidebarProjects.innerHTML = projects.map(p => `
         <div class="project-item ${currentProject?.id === p.id ? 'active' : ''}" data-id="${p.id}">
             ${p.name}
         </div>
-    `).join('') + `
-        <button id="newProjectBtn" class="primary" style="margin-top:1rem; width:100%;">+ New Project</button>
-    `;
+    `).join('');
     
-    document.querySelectorAll('.project-item').forEach(item => {
+    // Add event listeners to sidebar items
+    document.querySelectorAll('.project-item[data-id]').forEach(item => {
         item.addEventListener('click', () => switchProject((item as HTMLElement).dataset.id!));
     });
 
-    document.getElementById('newProjectBtn')?.addEventListener('click', createProject);
+    // Populate Header Dropdown
+    const divider = '<option disabled>──────────</option>';
+    const createOption = '<option value="NEW_PROJECT">+ Create New Project</option>';
+    const placeholder = '<option value="" disabled>Select a Project</option>';
+    
+    projectSelect.innerHTML = placeholder + createOption + divider + projects.map(p => `
+        <option value="${p.id}" ${currentProject?.id === p.id ? 'selected' : ''}>
+            ${p.name}
+        </option>
+    `).join('');
 }
+
+projectSelect.addEventListener('change', () => {
+    const val = projectSelect.value;
+    if (val === 'NEW_PROJECT') {
+        createProject();
+        projectSelect.value = currentProject?.id || '';
+    } else if (val) {
+        switchProject(val);
+    }
+});
 
 async function createProject() {
     const name = prompt('Project Name:');
@@ -120,7 +144,8 @@ async function createProject() {
             }
         });
         showToast('Project Created');
-        loadProjects();
+        await loadProjects();
+        switchProject(id);
     } catch (e) {
         showToast('Failed to create project', 'error');
     }
@@ -132,10 +157,14 @@ async function switchProject(id: string) {
             headers: { 'Authorization': `Bearer ${currentToken}` }
         });
         currentProject = await res.json();
-        renderSidebar();
+        
+        renderSelectors();
         renderProjectConfig();
         startHealthCheck();
         updateSnippets();
+
+        // Show config tab sections
+        document.getElementById('tab-config')?.classList.remove('hidden');
     } catch (e) {
         showToast('Failed to load project config', 'error');
     }
@@ -143,13 +172,13 @@ async function switchProject(id: string) {
 
 function renderProjectConfig() {
     if (!currentProject) return;
-    (document.getElementById('projectNameDisplay') as HTMLElement).textContent = currentProject.name;
     (document.getElementById('gaId') as HTMLInputElement).value = currentProject.gaId || '';
     (document.getElementById('pixelId') as HTMLInputElement).value = currentProject.pixelId || '';
     (document.getElementById('siteDomain') as HTMLInputElement).value = currentProject.siteDomain || '';
     (document.getElementById('scriptDomain') as HTMLInputElement).value = currentProject.scriptDomain || '';
     (document.getElementById('backupDomain') as HTMLInputElement).value = currentProject.backupDomain || '';
     (document.getElementById('preset') as HTMLSelectElement).value = currentProject.preset || 'kartra_standard';
+    (document.getElementById('projectId') as HTMLInputElement).value = currentProject.id;
     
     const versionsEl = document.getElementById('versionList')!;
     versionsEl.innerHTML = currentProject.versions?.map((v: any) => `
