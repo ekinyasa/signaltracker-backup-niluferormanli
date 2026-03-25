@@ -1,5 +1,9 @@
 import type { ProjectConfig } from '../scripts/types';
 
+// Vite Globals
+declare const __APP_VERSION__: string;
+declare const __BUILD_ID__: string;
+
 // State
 let projects: any[] = [];
 let currentProject: ProjectConfig | null = null;
@@ -10,6 +14,7 @@ const sidebarProjects = document.getElementById('sidebarProjects')!;
 const appMain = document.getElementById('appMain')!;
 const loginGate = document.getElementById('loginGate')!;
 const appHeader = document.getElementById('appHeader')!;
+const appSidebar = document.getElementById('appSidebar')!;
 
 const configForm = document.getElementById('configForm') as HTMLFormElement;
 const systemStatusValue = document.getElementById('systemStatusValue')!;
@@ -21,12 +26,14 @@ const toastContainer = document.getElementById('toastContainer')!;
 function showLogin() {
     loginGate.classList.remove('hidden');
     appHeader.classList.add('hidden');
+    appSidebar.classList.add('hidden');
     appMain.classList.add('hidden');
 }
 
 function showApp() {
     loginGate.classList.add('hidden');
     appHeader.classList.remove('hidden');
+    appSidebar.classList.remove('hidden');
     appMain.classList.remove('hidden');
     loadProjects();
 }
@@ -96,6 +103,8 @@ async function createProject() {
         siteDomain: '',
         scriptDomain: '',
         backupDomain: '',
+        gaId: '',
+        pixelId: '',
         ttlDays: 7,
         attributionModel: 'last_click',
         preset: 'kartra_standard'
@@ -251,6 +260,17 @@ document.querySelectorAll('.copy-btn').forEach(btn => {
     });
 });
 
+// Version Label Injection
+function injectVersion() {
+    const versionStr = `${__APP_VERSION__} | ${__BUILD_ID__}`;
+    document.title = `Signal-Path | ${versionStr}`;
+    const side = document.getElementById('sideVersion');
+    if (side) side.textContent = versionStr;
+    const top = document.getElementById('topVersion');
+    if (top) top.textContent = versionStr;
+}
+
 // Init
+injectVersion();
 authCheck();
 setInterval(startHealthCheck, 30000);

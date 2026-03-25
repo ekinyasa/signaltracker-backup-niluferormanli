@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Signal-Path | Command Center V2</title>
+    <title id="pageTitle">Signal-Path | V2.1</title>
     <style>
         :root {
             --bg: #000000;
@@ -136,7 +136,7 @@
     </div>
 
     <aside class="hidden" id="appSidebar">
-        <div class="logo">SIGNAL<span>PATH</span></div>
+        <div class="logo">SIGNAL<span>PATH</span> <small id="sideVersion" style="font-size:0.65rem; opacity:0.5; font-weight:400;"></small></div>
         <div class="sidebar-section">Projects</div>
         <div id="sidebarProjects">
             <!-- Projects list injected here -->
@@ -144,8 +144,9 @@
     </aside>
 
     <main class="hidden" id="appMain">
-        <header>
+        <header id="appHeader">
             <div id="projectNameDisplay" style="font-weight: 600;">Select a Project</div>
+            <div id="topVersion" style="font-size: 0.75rem; color: var(--text-muted); font-mono: monospace;"></div>
             <button id="logoutBtn" style="background:none; border:none; color:var(--text-muted); font-size:0.75rem; cursor:pointer;">Logout</button>
         </header>
 
