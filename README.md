@@ -1,27 +1,28 @@
-# Walkthrough - Signal-Path Platform (V2.2 UI Refinement)
+# Walkthrough - Signal-Path Platform (V2.3 UX Optimization)
 
-Platform version **2.2** introduces a more polished, professional interface for managing multiple tracking projects.
+Version **2.3** focuses on pixel-perfect styling and a significantly more intuitive project management workflow.
 
-## UI Improvements in V2.2
+## Key Improvements in V2.3
 
-### 1. Central Project Selector
-- **New Dropdown**: Located in the center of the header with a minimal, oval-bordered design.
-- **Unified Switcher**: Switch between projects directly from the header without using the sidebar for every task.
-- **Integrated Creation**: The "+ Create New Project" option is now part of the central dropdown for a cleaner workflow.
+### 1. Custom Aesthetic Selector
+- **Custom Dropdown**: Replaced the browser-native `<select>` with a fully custom component.
+- **Styling**: Text is now `0.7rem`, non-bold, and perfectly centered with reduced padding for a premium, minimal look.
+- **Improved UX**: The dropdown list appears smoothly and closes when clicking outside.
 
-### 2. Branding Restoration
-- **Original Logo**: Restored the "SIGNAL<span>PATH</span>" branding (half-blue style) for better brand recognition.
-- **Subdued Versioning**: A smaller, high-contrast version label (V2.2 | Hash) is now neatly placed next to the logo.
+### 2. Unified Creation & Metadata Sync
+- **No More Modals**: "+ Create New Project" no longer opens a prompt. Instead, it leads you directly to a clean **Configuration** tab.
+- **Project Name Editing**: You can now change the name of an existing project directly from the "Project Name" field in the config. Changes sync immediately to the sidebar and header.
+- **Combined Save**: One single "Save & Deploy" button handles both metadata updates (name changes) and configuration snapshots (deployments).
 
-### 3. Organized Navigation
-- **Segmented Sidebar**: Clearly split into "Monitoring" (General Dashboard) and "Active Projects" lists.
-- **Synchronized State**: Switching a project in the header automatically updates the sidebar selection and vice-versa.
+### 3. Permanent Management
+- **Delete Project**: Added a new "Delete Project Permanently" button at the bottom of the Configuration tab for easy cleanup.
 
-## How to Use the New Header
-1. Click the oval **"Select or Create Project"** button in the top center.
-2. Choose your project from the list.
-3. To start fresh, select **"+ Create New Project"** directly from the same menu.
+## How to use the New Flow
+1. **To Create**: Click the central selector -> **"+ Create New Project"**.
+2. **To Edit**: Go to the **Configuration** tab, change the name or IDs, and click **"Generate New Version & Deploy"**.
+3. **To Delete**: Go to the bottom of the **Configuration** tab and confirm deletion.
 
 ## Verification
-- Look at the header center: You should see the oval selector.
-- Look at the sidebar logo: You should see the blue "PATH" part and the small "V2.2 | Hash" label.
+- Check the header: Text should be smaller (`0.7rem`), centered, and non-bold.
+- Try creating a project: It should open the form without a popup.
+- Compare with GitHub/Cloudflare: Look for version `V2.3 | Hash`.
