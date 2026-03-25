@@ -1,5 +1,5 @@
 interface Env {
-  CONFIG_KV: KVNamespace;
+  SIGNAL_CONFIG_KV_NILUFER: KVNamespace;
   ADMIN_TOKEN?: string;
 }
 
@@ -12,7 +12,6 @@ const DEFAULT_CONFIG = {
 
 function checkAuth(request: Request, env: Env) {
   const token = request.headers.get('Authorization')?.split(' ')[1];
-  // If ADMIN_TOKEN is not set in Env, we allow it for now, but recommend setting it
   if (env.ADMIN_TOKEN && token !== env.ADMIN_TOKEN) {
     return false;
   }
@@ -20,14 +19,14 @@ function checkAuth(request: Request, env: Env) {
 }
 
 export const onRequestGet: PagesFunction<Env> = async (context) => {
-  if (!context.env.CONFIG_KV) {
-    return new Response(JSON.stringify({ error: 'KV Binding "CONFIG_KV" is missing in Cloudflare Settings.' }), {
+  if (!context.env.SIGNAL_CONFIG_KV_NILUFER) {
+    return new Response(JSON.stringify({ error: 'KV Binding "SIGNAL_CONFIG_KV_NILUFER" is missing.' }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' }
     });
   }
 
-  const config = await context.env.CONFIG_KV.get('nilufer_config', 'json');
+  const config = await context.env.SIGNAL_CONFIG_KV_NILUFER.get('nilufer_config', 'json');
   return new Response(JSON.stringify(config || DEFAULT_CONFIG), {
     headers: { 'Content-Type': 'application/json' }
   });
@@ -41,8 +40,8 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     });
   }
 
-  if (!context.env.CONFIG_KV) {
-    return new Response(JSON.stringify({ error: 'KV Binding "CONFIG_KV" is missing.' }), {
+  if (!context.env.SIGNAL_CONFIG_KV_NILUFER) {
+    return new Response(JSON.stringify({ error: 'KV Binding "SIGNAL_CONFIG_KV_NILUFER" is missing.' }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' }
     });
@@ -50,7 +49,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
 
   try {
     const newConfig = await context.request.json();
-    await context.env.CONFIG_KV.put('nilufer_config', JSON.stringify(newConfig));
+    await context.env.SIGNAL_CONFIG_KV_NILUFER.put('nilufer_config', JSON.stringify(newConfig));
     return new Response(JSON.stringify({ success: true }), {
       headers: { 'Content-Type': 'application/json' }
     });
