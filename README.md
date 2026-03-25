@@ -1,37 +1,27 @@
-# Walkthrough - Signal-Path Platform (Multi-Project V2)
+# Walkthrough - Signal-Path Platform (V2.2 UI Refinement)
 
-The system has evolved into a professional **Multi-Project Tracking Platform**. You can now manage multiple funnels, handle versions, and use ready-made presets from a single dashboard.
+Platform version **2.2** introduces a more polished, professional interface for managing multiple tracking projects.
 
-## Key Capabilities (V2)
+## UI Improvements in V2.2
 
-### 1. Multi-Project Management
-- **Sidebar Selector**: Easily switch between independent projects.
-- **Project Specific Settings**: Each project has its own GA/Meta IDs, Domains, and Attribution rules.
-- **Creation Flow**: "New Project" button to bootstrap a fresh tracking environment in seconds.
+### 1. Central Project Selector
+- **New Dropdown**: Located in the center of the header with a minimal, oval-bordered design.
+- **Unified Switcher**: Switch between projects directly from the header without using the sidebar for every task.
+- **Integrated Creation**: The "+ Create New Project" option is now part of the central dropdown for a cleaner workflow.
 
-### 2. Version Control & Rollback
-- **Auto-Snapshots**: Every time you save a configuration, a new version (v1, v2...) is created.
-- **One-Click Rollback**: Instantly revert to a previous version if a configuration error occurs.
-- **Dynamic Delivery**: Scripts are served via `/api/scripts/{project}/{version}/header.js`, ensuring they always match the selected version's config.
+### 2. Branding Restoration
+- **Original Logo**: Restored the "SIGNAL<span>PATH</span>" branding (half-blue style) for better brand recognition.
+- **Subdued Versioning**: A smaller, high-contrast version label (V2.2 | Hash) is now neatly placed next to the logo.
 
-### 3. Smart Presets & Logic
-- **Kartra Funnel**: Standard tracking with ViewContent -> InitiateCheckout -> Purchase.
-- **Simple Landing**: Lightweight tracking for standalone pages.
-- **Minimal Mode**: Analytics-only (GA) mode that completely bypasses Meta Pixel scripts for privacy or speed.
-- **Adjustable TTL**: Set custom attribution windows (default 7 days).
+### 3. Organized Navigation
+- **Segmented Sidebar**: Clearly split into "Monitoring" (General Dashboard) and "Active Projects" lists.
+- **Synchronized State**: Switching a project in the header automatically updates the sidebar selection and vice-versa.
 
-### 4. Integrated Monitoring & Help
-- **Pulse Check**: Real-time monitoring of script domains for each project.
-- **Unified Snippets**: Copy-paste ready codes for Header, Checkout, and Thank-you pages.
-- **Platform Manual**: In-app "DO/DON'T" guide for best practices.
+## How to Use the New Header
+1. Click the oval **"Select or Create Project"** button in the top center.
+2. Choose your project from the list.
+3. To start fresh, select **"+ Create New Project"** directly from the same menu.
 
-## How to Get Started
-1. Open your Admin Panel and login with `ADMIN_TOKEN`.
-2. Click **"+ New Project"** and name it.
-3. In **Configuration**, enter your GA and Meta IDs.
-4. Select a **Preset** (e.g., Kartra Standard).
-5. Click **"Generate New Version"**.
-6. Go to the **Snippets** tab and copy your codes.
-
-## Important: KV Configuration
-For multi-project to work, ensures your Cloudflare Pages KV Namespace is bound to `SIGNAL_CONFIG_KV_NILUFER`. The system handles the rest!
+## Verification
+- Look at the header center: You should see the oval selector.
+- Look at the sidebar logo: You should see the blue "PATH" part and the small "V2.2 | Hash" label.
