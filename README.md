@@ -1,49 +1,35 @@
-# Walkthrough - Nilüfer Ormanlı Orchestra-v1
+# Walkthrough - Nilüfer Ormanlı Orchestra-v1 (Signal-Path Optimization)
 
-The "Nilüfer Ormanlı" Orchestra-v1 system is now ready. It provides a lightweight, fail-safe tracking layer using Vanilla JS and Cloudflare Pages.
+The system has been upgraded to a production-ready "Command Center" with segmented tracking and professional UI.
 
-## Accomplishments
+## Changes Made
 
-- **Simplicity:** Removed React overhead; both the Admin Panel and Tracking Scripts are built with Vanilla JS/TS for maximum performance.
-- **Fail-Safe Delivery:** Implemented a robust loader that switches to a backup domain if the primary delivery fail.
-- **Scientific Attribution:** UTM parameters are captured and persisted in `localStorage`. `window.COS_DEBUG` allows real-time console auditing.
-- **Pixel Integration:** Fully integrated GA4 (with cross-domain linker) and Meta Pixel.
+### 1. Script Segmentation
+- **Header Script (`header.js`)**: Handles attribution capture (Last-Click) and pixel initialization. Fires `page_view`.
+- **Checkout Script (`checkout.js`)**: Specifically for checkout pages. Fires `begin_checkout` (GA4) and `InitiateCheckout` (Meta).
+- **Thank-You Script (`thankyou.js`)**: Fires `purchase` events and performs **Session Cleanup** (removes attribution data from localStorage after conversion).
 
-## How to Deploy
+### 2. Admin Command Center
+- **Login Gate**: Secure access using the `ADMIN_TOKEN`.
+- **Infrastructure Pulse**: Real-time HTTP health checks for Primary and Backup CDN URLs.
+- **Tabbed Interface**:
+  - **Monitoring**: System status summary and emergency action center.
+  - **Configuration**: Direct control over Tracking IDs and defaults.
+  - **Snippets**: Dynamic embed code generator with one-tap copy functionality.
 
-1. **Cloudflare Pages & GitHub:**
-   - Go to Cloudflare Dashboard -> Workers & Pages -> Create -> **Connect to Git**.
-   - Select the `SignalPath-NiluferOrmanli` repository.
-   - **Build Settings:**
-     - Framework Preset: `Vite`
-     - Build Command: `npm run build`
-     - Build Output Directory: `dist`
-   - **Environment Variables / Bindings:**
-     - Go to Settings -> Functions -> **KV Namespace Bindings**.
-     - Add a binding named `SIGNAL_CONFIG_KV_NILUFER` and select your KV namespace.
-     - Go to Settings -> **Variables and Secrets**.
-     - Add a Variable named `ADMIN_TOKEN` and set it to a secure password of your choice.
+### 3. Data Integrity & Resilience
+- **Last-Click Attribution**: Updates stored parameters if a user arrives with new UTMs.
+- **Fail-Safe Delivery**: Standard loader pattern with automatic fallback.
+- **Debug Mode**: `?cos_debug=true` prints the full attribution payload and event status.
 
-2. **Domains:**
-   - Point `scripts.niluferormanli.studio` (Primary) and `backup-scripts.niluferormanli.studio` (Backup) to your Cloudflare Pages deployment.
+## How to use the new Admin Panel
+1. Access your `pages.dev` URL.
+2. Enter your `ADMIN_TOKEN`.
+3. Use the **Configuration** tab to set IDs.
+4. Copy the scripts from the **Snippets** tab and paste them into Kartra appropriately.
 
-## Integration: Kartra Loader Snippet
-
-Copy and paste this snippet into the **Tracking Code** section (Header) of your Kartra pages. This snippet will automatically load the main tracking engine.
-
-```html
-<!-- Nilüfer Orchestra-v1 Loader -->
-<script src="https://scripts.niluferormanli.studio/loader.js"></script>
-```
-
-> [!TIP]
-> To enable debug mode on any page, append `?cos_debug=true` to the URL. You will see detailed logs in the browser console prefix with `[COS]`.
-
-## Event Verification
-
-- **Page View:** Automatically fired on initial load with `lang`, `market`, and `campaign_id` dimensions.
-- **Purchase:** The system expects Kartra data or manual triggers on the thank-you page. Tested with a generic `thankyou.js` entry point.
-
----
-**Project Folder:** [nilufer-script-tracking](file:///Users/ekinyasa/Coding/projects/claude/nilufer-script-tracking)
-**Build Assets:** [dist/assets](file:///Users/ekinyasa/Coding/projects/claude/nilufer-script-tracking/dist/assets)
+## Verification Results
+- [x] **Auth Check**: Unauthorized access is blocked.
+- [x] **Health Check**: Dashboard correctly identifies "Online" vs "Offline" status.
+- [x] **Event Firing**: Validated `header`, `checkout`, and `thankyou` segments fire events with correct payloads.
+- [x] **Storage Cleanup**: Storage is wiped after purchase success.
