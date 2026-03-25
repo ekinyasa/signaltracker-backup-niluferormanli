@@ -85,18 +85,12 @@ headerNewBtn.addEventListener('click', () => {
 function prepareNewProject() {
     isCreatingNew = true;
     currentProject = null;
-    
-    // Reset Form
     configForm.reset();
     (document.getElementById('projectId') as HTMLInputElement).value = '';
     (document.getElementById('projectName') as HTMLInputElement).value = '';
     (document.getElementById('saveBtn') as HTMLButtonElement).textContent = 'Create & Deploy Project';
     deleteProjectBtn.classList.add('hidden');
-    
-    // Update Trigger
     selectTrigger.textContent = 'Creating New Project...';
-    
-    // Switch to Config Tab
     switchTab('config');
     showToast('Ready for new project');
 }
@@ -109,9 +103,7 @@ async function loadProjects() {
         });
         if (res.status === 401) return showLogin();
         projects = await res.json();
-        
         renderSelectors();
-        
         if (projects.length > 0 && !currentProject && !isCreatingNew) {
             switchProject(projects[0].id);
         }
@@ -121,7 +113,6 @@ async function loadProjects() {
 }
 
 function renderSelectors() {
-    // Populate Sidebar
     sidebarProjects.innerHTML = projects.map(p => `
         <div class="project-item ${currentProject?.id === p.id ? 'active' : ''}" data-id="${p.id}">
             ${p.name}
@@ -132,7 +123,6 @@ function renderSelectors() {
         item.addEventListener('click', () => switchProject((item as HTMLElement).dataset.id!));
     });
 
-    // Populate Custom Dropdown
     const projectOptions = projects.map(p => `
         <li class="option-item ${currentProject?.id === p.id ? 'active' : ''}" data-id="${p.id}">
             ${p.name}
@@ -140,7 +130,6 @@ function renderSelectors() {
     `).join('');
     
     selectOptions.innerHTML = `<li class="option-item new-btn" id="headerNewBtn">+ Create New Project</li>` + projectOptions;
-    
     document.getElementById('headerNewBtn')?.addEventListener('click', prepareNewProject);
 
     document.querySelectorAll('.option-item[data-id]').forEach(opt => {
@@ -159,15 +148,12 @@ async function switchProject(id: string) {
             headers: { 'Authorization': `Bearer ${currentToken}` }
         });
         currentProject = await res.json();
-        
         renderSelectors();
         renderProjectConfig();
         startHealthCheck();
         updateSnippets();
-
         deleteProjectBtn.classList.remove('hidden');
         (document.getElementById('saveBtn') as HTMLButtonElement).textContent = 'Generate New Version & Deploy';
-        
         showToast(`Switched to ${currentProject?.name}`);
     } catch (e) {
         showToast('Failed to load project config', 'error');
@@ -234,13 +220,13 @@ function showToast(msg: string, type: 'success' | 'error' = 'success') {
     setTimeout(() => t.remove(), 3000);
 }
 
-// --- V2.4 Fallback Loader Generator ---
+// --- V2.5 Fallback Loader Generator (with Global Guard) ---
 function generateLoader(primaryUrl: string, backupUrl: string) {
     return `(function() {
-  var SOURCES = [
-    '${primaryUrl}',
-    '${backupUrl}'
-  ];
+  if (window.__NILUFER_TRACKER_LOADED__) return;
+  window.__NILUFER_TRACKER_LOADED__ = true;
+
+  var SOURCES = ['${primaryUrl}', '${backupUrl}'];
   var loaded = false;
   var index = 0;
   var TIMEOUT = 2500;
@@ -273,7 +259,6 @@ function updateSnippets() {
 
 configForm.addEventListener('submit', async (e) => {
     e.preventDefault();
-    
     const name = (document.getElementById('projectName') as HTMLInputElement).value;
     let id = (document.getElementById('projectId') as HTMLInputElement).value;
     
@@ -283,10 +268,7 @@ configForm.addEventListener('submit', async (e) => {
             await fetch('/api/projects', {
                 method: 'POST',
                 body: JSON.stringify({ id, name }),
-                headers: { 
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${currentToken}`
-                }
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${currentToken}` }
             });
         } catch (err) {
             return showToast('Failed to create project metadata', 'error');
@@ -294,8 +276,7 @@ configForm.addEventListener('submit', async (e) => {
     }
 
     const data = {
-        id,
-        name,
+        id, name,
         gaId: (document.getElementById('gaId') as HTMLInputElement).value,
         pixelId: (document.getElementById('pixelId') as HTMLInputElement).value,
         fbVerifyId: (document.getElementById('fbVerifyId') as HTMLInputElement).value,
@@ -310,10 +291,7 @@ configForm.addEventListener('submit', async (e) => {
         await fetch(`/api/config?project=${id}`, {
             method: 'POST',
             body: JSON.stringify(data),
-            headers: { 
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${currentToken}`
-            }
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${currentToken}` }
         });
         showToast(isCreatingNew ? 'Project Created & Deployed' : 'Version Generated');
         isCreatingNew = false;
@@ -326,8 +304,7 @@ configForm.addEventListener('submit', async (e) => {
 
 deleteProjectBtn.addEventListener('click', async () => {
     if (!currentProject) return;
-    if (!confirm(`Are you sure you want to delete "${currentProject.name}"? This cannot be undone.`)) return;
-
+    if (!confirm(`Are you sure you want to delete "${currentProject.name}"?`)) return;
     try {
         await fetch(`/api/projects?id=${currentProject.id}`, {
             method: 'DELETE',
@@ -359,7 +336,6 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     });
 });
 
-// Copy Logic
 document.querySelectorAll('.copy-btn').forEach(btn => {
     btn.addEventListener('click', () => {
         const targetId = (btn as HTMLElement).dataset.target!;
@@ -369,7 +345,6 @@ document.querySelectorAll('.copy-btn').forEach(btn => {
     });
 });
 
-// Version Label Injection
 function injectVersion() {
     const versionStr = `${__APP_VERSION__} | ${__BUILD_ID__}`;
     document.title = `Signal-Path | ${versionStr}`;
@@ -379,7 +354,6 @@ function injectVersion() {
     if (top) top.textContent = versionStr;
 }
 
-// Init
 injectVersion();
 authCheck();
 setInterval(startHealthCheck, 30000);
