@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title id="pageTitle">Signal-Path | V2.2</title>
+    <title id="pageTitle">Signal-Path | V2.3</title>
     <style>
         :root {
             --bg: #000000;
@@ -32,7 +32,6 @@
             overflow: hidden;
         }
 
-        /* Sidebar */
         aside {
             width: 260px;
             background: var(--sidebar);
@@ -42,9 +41,9 @@
             padding: 1.5rem;
             flex-shrink: 0;
         }
-        .logo { font-weight: 800; font-size: 1.125rem; margin-bottom: 2rem; color: #fff; text-decoration: none; display: block; }
+        .logo { font-weight: 800; font-size: 1.125rem; margin-bottom: 2rem; color: #fff; text-decoration: none; }
         .logo span { color: var(--accent); }
-        .logo small { display: block; opacity: 0.4; font-size: 0.65rem; font-weight: 400; margin-top: 0.25rem; }
+        .logo small { display: block; opacity: 0.4; font-size: 0.6rem; font-weight: 400; margin-top: 0.25rem; }
         
         .sidebar-section { font-size: 0.75rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.75rem; border-top: 1px solid var(--border); padding-top: 1.5rem; margin-top: 1.5rem; }
         .sidebar-section:first-of-type { border: none; padding-top: 0; margin-top: 0; }
@@ -52,7 +51,7 @@
         .project-item {
             padding: 0.75rem;
             border-radius: 8px;
-            font-size: 0.875rem;
+            font-size: 0.8125rem;
             cursor: pointer;
             transition: background 0.2s;
             margin-bottom: 0.25rem;
@@ -61,7 +60,6 @@
         .project-item:hover { background: var(--active); color: var(--text); }
         .project-item.active { background: var(--active); color: var(--primary); font-weight: 600; }
 
-        /* Main Content */
         main {
             flex: 1;
             display: flex;
@@ -71,49 +69,89 @@
         }
 
         header {
-            padding: 0.75rem 2rem;
+            padding: 0.5rem 2rem;
             border-bottom: 1px solid var(--border);
             display: flex;
             justify-content: space-between;
             align-items: center;
             background: var(--bg);
-            z-index: 10;
+            z-index: 100;
         }
 
-        /* Project Selector (Oval Dropdown) */
+        /* Custom Project Selector (V2.3) */
         #projectSelectorWrapper {
             flex: 1;
             display: flex;
             justify-content: center;
+            position: relative;
         }
-        .selector {
-            background-color: var(--card);
+        .custom-select {
+            position: relative;
+            min-width: 220px;
+        }
+        .select-trigger {
+            background: var(--card);
             border: 1px solid var(--border);
             border-radius: 99px;
-            padding: 0.4rem 1rem;
+            padding: 0.35rem 1rem;
+            font-size: 0.7rem;
+            font-weight: 500;
+            color: var(--text);
+            cursor: pointer;
             display: flex;
             align-items: center;
-            min-width: 240px;
+            justify-content: center;
+            gap: 0.5rem;
             transition: all 0.2s;
-        }
-        .selector:hover { border-color: #333; }
-        .selector select {
-            background: transparent;
-            border: none;
-            color: var(--text);
-            font-size: 0.8125rem;
-            font-weight: 600;
-            cursor: pointer;
-            outline: none;
-            width: 100%;
             text-align: center;
-            appearance: none;
         }
+        .select-trigger:hover { border-color: #333; }
+        .select-trigger::after {
+            content: '';
+            border: solid var(--text-muted);
+            border-width: 0 1.5px 1.5px 0;
+            display: inline-block;
+            padding: 2px;
+            transform: rotate(45deg);
+            margin-top: -2px;
+        }
+
+        .select-options {
+            position: absolute;
+            top: calc(100% + 8px);
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            width: 240px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            list-style: none;
+            padding: 0.5rem;
+            margin: 0;
+            z-index: 1000;
+            display: none;
+        }
+        .select-options.show { display: block; }
+        
+        .option-item {
+            padding: 0.6rem 1rem;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+        .option-item:hover { background: var(--active); color: var(--text); }
+        .option-item.active { color: var(--accent); font-weight: 600; }
+        .option-item.new-btn { color: var(--success); border-bottom: 1px solid var(--border); border-radius: 0; margin-bottom: 0.25rem; font-weight: 600; }
+        .option-divider { height: 1px; background: var(--border); margin: 0.25rem 0.5rem; }
 
         .container { padding: 2rem; max-width: 1100px; margin: 0 auto; width: 100%; }
 
         #loginGate {
-            position: fixed; inset: 0; background: var(--bg); display: flex; justify-content: center; align-items: center; z-index: 1000;
+            position: fixed; inset: 0; background: var(--bg); display: flex; justify-content: center; align-items: center; z-index: 2000;
         }
         .login-card { width: 360px; padding: 2rem; border: 1px solid var(--border); border-radius: 12px; background: var(--card); text-align: center; }
 
@@ -124,7 +162,7 @@
 
         .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
         .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem; }
-        .card-label { font-size: 0.6875rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.75rem; }
+        .card-label { font-size: 0.625rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.75rem; letter-spacing: 0.05em; }
         .card-value { font-size: 1.25rem; font-weight: 700; margin-bottom: 0.5rem; }
         
         .version-item {
@@ -133,15 +171,17 @@
         .version-item.active { background: rgba(0, 112, 243, 0.05); color: var(--accent); }
         
         .input-group { margin-bottom: 1.25rem; }
-        label { display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.5rem; }
-        input, select { width: 100%; background: #000; border: 1px solid var(--border); padding: 0.625rem; border-radius: 6px; color: var(--text); font-size: 0.8125rem; }
+        label { display: block; font-size: 0.7rem; color: var(--text-muted); margin-bottom: 0.5rem; font-weight: 500; }
+        input, select { width: 100%; background: #000; border: 1px solid var(--border); padding: 0.625rem; border-radius: 6px; color: var(--text); font-size: 0.8125rem; outline: none; transition: border 0.2s; }
+        input:focus { border-color: var(--accent); }
         
-        button.primary { background: var(--primary); color: #000; border: none; padding: 0.625rem 1rem; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 0.8125rem; }
-        button.rollback-btn { background: transparent; border: 1px solid var(--border); color: var(--text-muted); padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.75rem; cursor: pointer; }
+        button.primary { background: var(--primary); color: #000; border: none; padding: 0.75rem 1.25rem; border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 0.75rem; transition: opacity 0.2s; }
+        button.primary:hover { opacity: 0.9; }
+        button.rollback-btn { background: transparent; border: 1px solid var(--border); color: var(--text-muted); padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.7rem; cursor: pointer; }
 
-        pre { background: #000; padding: 1rem; border-radius: 8px; border: 1px solid var(--border); overflow-x: auto; font-size: 0.75rem; line-height: 1.5; color: #aaa; }
+        pre { background: #000; padding: 1.25rem; border-radius: 8px; border: 1px solid var(--border); overflow-x: auto; font-size: 0.75rem; line-height: 1.5; color: #888; }
 
-        .toast { position: fixed; bottom: 2rem; right: 2rem; background: var(--text); color: #000; padding: 0.75rem 1rem; border-radius: 6px; font-size: 0.8125rem; font-weight: 600; z-index: 2000; box-shadow: 0 10px 40px rgba(0,0,0,0.5); }
+        .toast { position: fixed; bottom: 2rem; right: 2rem; background: var(--text); color: #000; padding: 0.75rem 1.25rem; border-radius: 8px; font-size: 0.8125rem; font-weight: 700; z-index: 3000; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
         
         .hidden { display: none !important; }
 
@@ -151,14 +191,16 @@
     </style>
 </head>
 <body>
+    <!-- Login Section -->
     <div id="loginGate">
         <div class="login-card">
             <div class="logo">SIGNAL<span>PATH</span></div>
-            <input type="password" id="loginToken" placeholder="ADMIN_TOKEN" style="margin-bottom: 1rem;">
-            <button class="primary" id="loginBtn" style="width: 100%;">Authorize</button>
+            <input type="password" id="loginToken" placeholder="ENTER ADMIN TOKEN" style="margin-bottom: 1rem; text-align: center;">
+            <button class="primary" id="loginBtn" style="width: 100%;">Authorize Access</button>
         </div>
     </div>
 
+    <!-- Sidebar -->
     <aside id="appSidebar" class="hidden">
         <div class="logo">SIGNAL<span>PATH</span> <small id="sideVersion"></small></div>
         
@@ -171,22 +213,24 @@
         </div>
     </aside>
 
+    <!-- Main Content -->
     <main class="hidden" id="appMain">
         <header id="appHeader">
             <div style="flex: 0 0 150px;"></div>
             
+            <!-- V2.3 Custom Project Selector -->
             <div id="projectSelectorWrapper">
-                <div class="selector">
-                    <select id="projectSelect">
-                        <option value="" disabled selected>Select or Create Project</option>
-                        <option value="NEW_PROJECT">+ Create New Project</option>
-                        <option disabled>──────────</option>
-                    </select>
+                <div class="custom-select" id="customProjectSelect">
+                    <div class="select-trigger" id="selectTrigger">Select a Project</div>
+                    <ul class="select-options" id="selectOptions">
+                        <li class="option-item new-btn" id="headerNewBtn">+ Create New Project</li>
+                        <!-- Projects injected here -->
+                    </ul>
                 </div>
             </div>
 
             <div style="flex: 0 0 150px; text-align: right;">
-                <button id="logoutBtn" style="background:none; border:none; color:var(--text-muted); font-size:0.75rem; cursor:pointer;">Logout</button>
+                <button id="logoutBtn" style="background:none; border:none; color:var(--text-muted); font-size:0.7rem; cursor:pointer; font-weight:500;">Logout</button>
             </div>
         </header>
 
@@ -198,6 +242,7 @@
                 <button class="tab-btn" data-tab="guide">Manual</button>
             </nav>
 
+            <!-- Dashboard -->
             <section id="tab-dashboard">
                 <div class="grid">
                     <div class="card">
@@ -205,18 +250,18 @@
                         <div class="card-value" id="systemStatusValue">--</div>
                     </div>
                     <div class="card">
-                        <div class="card-label">Pulse (Primary / Backup)</div>
+                        <div class="card-label">Tracking Pulse</div>
                         <div style="font-size: 0.8125rem;">
-                            <div style="display:flex; justify-content:space-between; margin-bottom:0.25rem;">
-                                <span>Main CDN</span> <span id="pulsePrimaryStatus">--</span>
+                            <div style="display:flex; justify-content:space-between; margin-bottom:0.4rem;">
+                                <span>Primary</span> <span id="pulsePrimaryStatus">--</span>
                             </div>
                             <div style="display:flex; justify-content:space-between;">
-                                <span>Backup CDN</span> <span id="pulseBackupStatus">--</span>
+                                <span>Backup</span> <span id="pulseBackupStatus">--</span>
                             </div>
                         </div>
                     </div>
                     <div class="card">
-                        <div class="card-label">Build Integrity</div>
+                        <div class="card-label">Active Build</div>
                         <div style="font-size: 0.9rem; font-weight:600; color:var(--accent);" id="topVersion">---</div>
                     </div>
                 </div>
@@ -227,89 +272,105 @@
                 </div>
             </section>
 
+            <!-- Configuration (Unified Edit/Create) -->
             <section id="tab-config" class="hidden">
                 <form id="configForm">
-                    <div class="card" style="margin-bottom: 1.5rem;">
-                        <input type="hidden" id="projectId">
-                        <div class="card-label">Property IDs</div>
-                        <div class="grid" style="grid-template-columns: 1fr 1fr;">
-                            <div class="input-group">
+                    <input type="hidden" id="projectId">
+                    
+                    <div class="card" style="margin-bottom: 2rem;">
+                        <div class="card-label">Platform Identity</div>
+                        <div class="input-group">
+                            <label>Project Name (User Friendly)</label>
+                            <input type="text" id="projectName" placeholder="e.g., Nilufer Ormanli Main Funnel" required>
+                        </div>
+                    </div>
+
+                    <div class="card" style="margin-bottom: 2rem;">
+                        <div class="card-label">External Property IDs</div>
+                        <div class="grid" style="grid-template-columns: 1fr 1fr; margin-bottom: 0;">
+                            <div class="input-group" style="margin-bottom: 0;">
                                 <label>GA4 Measurement ID</label>
-                                <input type="text" id="gaId" required>
+                                <input type="text" id="gaId" placeholder="G-XXXXXXXXXX" required>
                             </div>
-                            <div class="input-group">
+                            <div class="input-group" style="margin-bottom: 0;">
                                 <label>Meta Pixel ID</label>
-                                <input type="text" id="pixelId" required>
+                                <input type="text" id="pixelId" placeholder="1234567890" required>
                             </div>
                         </div>
                     </div>
 
-                    <div class="card" style="margin-bottom: 1.5rem;">
+                    <div class="card" style="margin-bottom: 2rem;">
                         <div class="card-label">Domain Routing</div>
-                        <div class="grid" style="grid-template-columns: 1fr 1fr 1fr;">
-                            <div class="input-group">
+                        <div class="grid" style="grid-template-columns: 1fr 1fr 1fr; margin-bottom: 0;">
+                            <div class="input-group" style="margin-bottom: 0;">
                                 <label>Site Domain</label>
-                                <input type="text" id="siteDomain" placeholder="example.com" required>
+                                <input type="text" id="siteDomain" placeholder="niluferormanli.studio" required>
                             </div>
-                            <div class="input-group">
-                                <label>Primary Script Domain</label>
-                                <input type="text" id="scriptDomain" placeholder="scripts.example.com" required>
+                            <div class="input-group" style="margin-bottom: 0;">
+                                <label>Script CDN</label>
+                                <input type="text" id="scriptDomain" placeholder="scripts.domain.com" required>
                             </div>
-                            <div class="input-group">
-                                <label>Backup Script Domain</label>
-                                <input type="text" id="backupDomain" placeholder="backup.example.com" required>
+                            <div class="input-group" style="margin-bottom: 0;">
+                                <label>Backup CDN</label>
+                                <input type="text" id="backupDomain" placeholder="backup.domain.com" required>
                             </div>
                         </div>
                     </div>
 
-                    <div class="card" style="margin-bottom: 1.5rem;">
-                        <div class="card-label">Logic & Presets</div>
-                        <div class="grid" style="grid-template-columns: 1fr 1fr;">
-                            <div class="input-group">
-                                <label>Tracking Preset</label>
+                    <div class="card" style="margin-bottom: 2rem;">
+                        <div class="card-label">Tracking Strategy</div>
+                        <div class="grid" style="grid-template-columns: 1fr 1fr; margin-bottom: 0;">
+                            <div class="input-group" style="margin-bottom: 0;">
+                                <label>Preset Mode</label>
                                 <select id="preset">
                                     <option value="kartra_standard">Kartra Funnel (Standard)</option>
                                     <option value="simple_landing">Simple Landing (PV + Click)</option>
                                     <option value="minimal_ga">Minimal Mode (GA Only)</option>
                                 </select>
                             </div>
-                            <div class="input-group">
+                            <div class="input-group" style="margin-bottom: 0;">
                                 <label>Attribution TTL (Days)</label>
                                 <input type="number" id="ttlDays" value="7">
                             </div>
                         </div>
                     </div>
 
-                    <button type="submit" class="primary" style="width: 100%;">Generate New Version & Deploy</button>
+                    <button type="submit" class="primary" style="width: 100%;" id="saveBtn">Generate New Version & Deploy</button>
+                    <button type="button" id="deleteProjectBtn" style="width: 100%; background: none; border: 1px solid var(--error); color: var(--error); padding: 0.75rem; border-radius: 6px; margin-top: 1rem; cursor: pointer; font-size: 0.75rem; font-weight: 600;">Delete Project Permanently</button>
                 </form>
             </section>
 
+            <!-- Snippets -->
             <section id="tab-snippets" class="hidden">
                 <div class="card" style="margin-bottom: 1rem;">
-                    <div class="card-label">All Pages Script (Header)</div>
+                    <div class="card-label">Source Embed (Header / Global)</div>
                     <pre id="snippetHeader"></pre>
-                    <button class="primary copy-btn" data-target="snippetHeader" style="margin-top:0.5rem;">Copy Snippet</button>
+                    <button class="primary copy-btn" data-target="snippetHeader" style="margin-top:0.5rem; padding: 0.5rem 1rem;">Copy to Clipboard</button>
                 </div>
                 <div class="card" style="margin-bottom: 1rem;">
-                    <div class="card-label">Checkout Script</div>
+                    <div class="card-label">Conversion Embed (Checkout Initiation)</div>
                     <pre id="snippetCheckout"></pre>
-                    <button class="primary copy-btn" data-target="snippetCheckout" style="margin-top:0.5rem;">Copy Snippet</button>
+                    <button class="primary copy-btn" data-target="snippetCheckout" style="margin-top:0.5rem; padding: 0.5rem 1rem;">Copy to Clipboard</button>
                 </div>
                 <div class="card" style="margin-bottom: 1rem;">
-                    <div class="card-label">Thank-You Script</div>
+                    <div class="card-label">Success Embed (Purchase / Thank-You)</div>
                     <pre id="snippetThankyou"></pre>
-                    <button class="primary copy-btn" data-target="snippetThankyou" style="margin-top:0.5rem;">Copy Snippet</button>
+                    <button class="primary copy-btn" data-target="snippetThankyou" style="margin-top:0.5rem; padding: 0.5rem 1rem;">Copy to Clipboard</button>
                 </div>
             </section>
 
+            <!-- Manual -->
             <section id="tab-guide" class="hidden">
                 <div class="card">
-                    <div class="card-label">Setup Manual</div>
-                    <h3 style="font-size: 0.9rem; margin-top:0;">1. GA4 Configuration</h3>
-                    <p style="font-size: 0.8125rem; color: var(--text-muted);">Custom dimensions (cid, market, lang) are pre-configured. No manual events needed.</p>
+                    <div class="card-label">Onboarding Guide</div>
+                    <h3 style="font-size: 0.9rem; margin-top:0;">Step 1: Create Project</h3>
+                    <p style="font-size: 0.8125rem; color: var(--text-muted);">Use the central selector to add a new project. Fill in GA4/Meta IDs and domains.</p>
                     
-                    <h3 style="font-size: 0.9rem; margin-top: 1.5rem;">2. Meta Pixel</h3>
-                    <p style="font-size: 0.8125rem; color: var(--text-muted);">Embed only once. The segments will handle specialized events automatically.</p>
+                    <h3 style="font-size: 0.9rem; margin-top: 1.5rem;">Step 2: Generate Version</h3>
+                    <p style="font-size: 0.8125rem; color: var(--text-muted);">Saving a config creates a version snapshot. This enables rollbacks and dynamic script delivery.</p>
+
+                    <h3 style="font-size: 0.9rem; margin-top: 1.5rem;">Step 3: Embed Scripts</h3>
+                    <p style="font-size: 0.8125rem; color: var(--text-muted);">Copy the snippets to your funnel pages. Header goes on every page, Thank-you only on the final success page.</p>
                 </div>
             </section>
         </div>

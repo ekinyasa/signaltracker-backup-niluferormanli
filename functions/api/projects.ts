@@ -31,10 +31,9 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     const projectMeta = await context.request.json() as any;
     const currentList = await context.env.SIGNAL_CONFIG_KV_NILUFER.get('signal_projects_list', 'json') as any[] || [];
     
-    // Simple push or update by ID
     const index = currentList.findIndex(p => p.id === projectMeta.id);
     if (index > -1) {
-        currentList[index] = projectMeta;
+        currentList[index] = { ...currentList[index], ...projectMeta };
     } else {
         currentList.push(projectMeta);
     }
@@ -46,4 +45,24 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
   } catch (e) {
     return new Response(JSON.stringify({ error: 'Invalid payload' }), { status: 400 });
   }
+};
+
+export const onRequestDelete: PagesFunction<Env> = async (context) => {
+  if (!checkAuth(context.request, context.env)) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
+  }
+
+  const url = new URL(context.request.url);
+  const id = url.searchParams.get('id');
+  if (!id) return new Response('Missing ID', { status: 400 });
+
+  const currentList = await context.env.SIGNAL_CONFIG_KV_NILUFER.get('signal_projects_list', 'json') as any[] || [];
+  const newList = currentList.filter(p => p.id !== id);
+
+  await context.env.SIGNAL_CONFIG_KV_NILUFER.put('signal_projects_list', JSON.stringify(newList));
+  await context.env.SIGNAL_CONFIG_KV_NILUFER.delete(`signal_project_${id}`);
+  
+  return new Response(JSON.stringify({ success: true }), {
+    headers: { 'Content-Type': 'application/json' }
+  });
 };

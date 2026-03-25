@@ -44,11 +44,19 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
   try {
     const newConfig = await context.request.json() as any;
     
-    // Versioning logic
+    // 1. Update Project Metadata (Sync Name)
+    const currentList = await context.env.SIGNAL_CONFIG_KV_NILUFER.get('signal_projects_list', 'json') as any[] || [];
+    const metaIndex = currentList.findIndex(p => p.id === projectId);
+    if (metaIndex > -1) {
+        currentList[metaIndex].name = newConfig.name;
+        await context.env.SIGNAL_CONFIG_KV_NILUFER.put('signal_projects_list', JSON.stringify(currentList));
+    }
+
+    // 2. Versioning logic
     const currentConfigStr = await context.env.SIGNAL_CONFIG_KV_NILUFER.get(`signal_project_${projectId}`);
-    const currentConfig = currentConfigStr ? JSON.parse(currentConfigStr) : { versions: [] };
+    const currentData = currentConfigStr ? JSON.parse(currentConfigStr) : { versions: [] };
     
-    const versionId = `v${(currentConfig.versions?.length || 0) + 1}`;
+    const versionId = `v${(currentData.versions?.length || 0) + 1}`;
     const snapshot = {
         id: versionId,
         timestamp: Date.now(),
@@ -58,7 +66,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     const finalConfig = {
         ...newConfig,
         activeVersion: versionId,
-        versions: [snapshot, ...(currentConfig.versions || [])].slice(0, 10) // Keep last 10 versions
+        versions: [snapshot, ...(currentData.versions || [])].slice(0, 10)
     };
 
     await context.env.SIGNAL_CONFIG_KV_NILUFER.put(`signal_project_${projectId}`, JSON.stringify(finalConfig));

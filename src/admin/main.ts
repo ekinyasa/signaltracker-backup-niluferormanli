@@ -8,6 +8,7 @@ declare const __BUILD_ID__: string;
 let projects: any[] = [];
 let currentProject: ProjectConfig | null = null;
 let currentToken = localStorage.getItem('COS_ADMIN_TOKEN') || '';
+let isCreatingNew = false;
 
 // Elements
 const sidebarProjects = document.getElementById('sidebarProjects')!;
@@ -15,13 +16,18 @@ const appMain = document.getElementById('appMain')!;
 const loginGate = document.getElementById('loginGate')!;
 const appHeader = document.getElementById('appHeader')!;
 const appSidebar = document.getElementById('appSidebar')!;
-const projectSelect = document.getElementById('projectSelect') as HTMLSelectElement;
+
+// Custom Dropdown Elements
+const selectTrigger = document.getElementById('selectTrigger')!;
+const selectOptions = document.getElementById('selectOptions')!;
+const headerNewBtn = document.getElementById('headerNewBtn')!;
 
 const configForm = document.getElementById('configForm') as HTMLFormElement;
 const systemStatusValue = document.getElementById('systemStatusValue')!;
 const pulsePrimary = document.getElementById('pulsePrimaryStatus')!;
 const pulseBackup = document.getElementById('pulseBackupStatus')!;
 const toastContainer = document.getElementById('toastContainer')!;
+const deleteProjectBtn = document.getElementById('deleteProjectBtn')!;
 
 // --- Auth ---
 function showLogin() {
@@ -62,6 +68,39 @@ document.getElementById('logoutBtn')?.addEventListener('click', () => {
     location.reload();
 });
 
+// --- Custom Selector Logic ---
+selectTrigger.addEventListener('click', (e) => {
+    e.stopPropagation();
+    selectOptions.classList.toggle('show');
+});
+
+document.addEventListener('click', () => {
+    selectOptions.classList.remove('show');
+});
+
+headerNewBtn.addEventListener('click', () => {
+    prepareNewProject();
+});
+
+function prepareNewProject() {
+    isCreatingNew = true;
+    currentProject = null;
+    
+    // Reset Form
+    configForm.reset();
+    (document.getElementById('projectId') as HTMLInputElement).value = '';
+    (document.getElementById('projectName') as HTMLInputElement).value = '';
+    (document.getElementById('saveBtn') as HTMLButtonElement).textContent = 'Create & Deploy Project';
+    deleteProjectBtn.classList.add('hidden');
+    
+    // Update Trigger
+    selectTrigger.textContent = 'Creating New Project...';
+    
+    // Switch to Config Tab
+    switchTab('config');
+    showToast('Ready for new project');
+}
+
 // --- Project Management ---
 async function loadProjects() {
     try {
@@ -73,7 +112,7 @@ async function loadProjects() {
         
         renderSelectors();
         
-        if (projects.length > 0 && !currentProject) {
+        if (projects.length > 0 && !currentProject && !isCreatingNew) {
             switchProject(projects[0].id);
         }
     } catch (e) {
@@ -89,69 +128,36 @@ function renderSelectors() {
         </div>
     `).join('');
     
-    // Add event listeners to sidebar items
     document.querySelectorAll('.project-item[data-id]').forEach(item => {
         item.addEventListener('click', () => switchProject((item as HTMLElement).dataset.id!));
     });
 
-    // Populate Header Dropdown
-    const divider = '<option disabled>──────────</option>';
-    const createOption = '<option value="NEW_PROJECT">+ Create New Project</option>';
-    const placeholder = '<option value="" disabled>Select a Project</option>';
-    
-    projectSelect.innerHTML = placeholder + createOption + divider + projects.map(p => `
-        <option value="${p.id}" ${currentProject?.id === p.id ? 'selected' : ''}>
+    // Populate Custom Dropdown
+    const projectOptions = projects.map(p => `
+        <li class="option-item ${currentProject?.id === p.id ? 'active' : ''}" data-id="${p.id}">
             ${p.name}
-        </option>
+        </li>
     `).join('');
-}
-
-projectSelect.addEventListener('change', () => {
-    const val = projectSelect.value;
-    if (val === 'NEW_PROJECT') {
-        createProject();
-        projectSelect.value = currentProject?.id || '';
-    } else if (val) {
-        switchProject(val);
-    }
-});
-
-async function createProject() {
-    const name = prompt('Project Name:');
-    if (!name) return;
-    const id = name.toLowerCase().replace(/\s+/g, '_') + '_' + Date.now();
     
-    const newProject: Partial<ProjectConfig> = {
-        id,
-        name,
-        siteDomain: '',
-        scriptDomain: '',
-        backupDomain: '',
-        gaId: '',
-        pixelId: '',
-        ttlDays: 7,
-        attributionModel: 'last_click',
-        preset: 'kartra_standard'
-    };
+    // Keep the "New" button, then add projects
+    selectOptions.innerHTML = `<li class="option-item new-btn" id="headerNewBtn">+ Create New Project</li>` + projectOptions;
+    
+    // Re-attach new btn listener since we innerHTML'd it
+    document.getElementById('headerNewBtn')?.addEventListener('click', prepareNewProject);
 
-    try {
-        await fetch('/api/projects', {
-            method: 'POST',
-            body: JSON.stringify(newProject),
-            headers: { 
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${currentToken}`
-            }
-        });
-        showToast('Project Created');
-        await loadProjects();
-        switchProject(id);
-    } catch (e) {
-        showToast('Failed to create project', 'error');
+    // Attach listeners to options
+    document.querySelectorAll('.option-item[data-id]').forEach(opt => {
+        opt.addEventListener('click', () => switchProject((opt as HTMLElement).dataset.id!));
+    });
+
+    // Update Trigger Text
+    if (!isCreatingNew) {
+        selectTrigger.textContent = currentProject?.name || 'Select a Project';
     }
 }
 
 async function switchProject(id: string) {
+    isCreatingNew = false;
     try {
         const res = await fetch(`/api/config?project=${id}`, {
             headers: { 'Authorization': `Bearer ${currentToken}` }
@@ -163,8 +169,10 @@ async function switchProject(id: string) {
         startHealthCheck();
         updateSnippets();
 
-        // Show config tab sections
-        document.getElementById('tab-config')?.classList.remove('hidden');
+        deleteProjectBtn.classList.remove('hidden');
+        (document.getElementById('saveBtn') as HTMLButtonElement).textContent = 'Generate New Version & Deploy';
+        
+        showToast(`Switched to ${currentProject?.name}`);
     } catch (e) {
         showToast('Failed to load project config', 'error');
     }
@@ -172,6 +180,7 @@ async function switchProject(id: string) {
 
 function renderProjectConfig() {
     if (!currentProject) return;
+    (document.getElementById('projectName') as HTMLInputElement).value = currentProject.name || '';
     (document.getElementById('gaId') as HTMLInputElement).value = currentProject.gaId || '';
     (document.getElementById('pixelId') as HTMLInputElement).value = currentProject.pixelId || '';
     (document.getElementById('siteDomain') as HTMLInputElement).value = currentProject.siteDomain || '';
@@ -179,6 +188,7 @@ function renderProjectConfig() {
     (document.getElementById('backupDomain') as HTMLInputElement).value = currentProject.backupDomain || '';
     (document.getElementById('preset') as HTMLSelectElement).value = currentProject.preset || 'kartra_standard';
     (document.getElementById('projectId') as HTMLInputElement).value = currentProject.id;
+    (document.getElementById('ttlDays') as HTMLInputElement).value = (currentProject.ttlDays || 7).toString();
     
     const versionsEl = document.getElementById('versionList')!;
     versionsEl.innerHTML = currentProject.versions?.map((v: any) => `
@@ -239,21 +249,41 @@ function updateSnippets() {
 
 configForm.addEventListener('submit', async (e) => {
     e.preventDefault();
-    if (!currentProject) return;
+    
+    const name = (document.getElementById('projectName') as HTMLInputElement).value;
+    let id = (document.getElementById('projectId') as HTMLInputElement).value;
+    
+    if (isCreatingNew) {
+        id = name.toLowerCase().replace(/\s+/g, '_') + '_' + Date.now();
+        // Step 1: Create Project Metadata
+        try {
+            await fetch('/api/projects', {
+                method: 'POST',
+                body: JSON.stringify({ id, name }),
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${currentToken}`
+                }
+            });
+        } catch (err) {
+            return showToast('Failed to create project metadata', 'error');
+        }
+    }
 
     const data = {
+        id,
+        name,
         gaId: (document.getElementById('gaId') as HTMLInputElement).value,
         pixelId: (document.getElementById('pixelId') as HTMLInputElement).value,
         siteDomain: (document.getElementById('siteDomain') as HTMLInputElement).value,
         scriptDomain: (document.getElementById('scriptDomain') as HTMLInputElement).value,
         backupDomain: (document.getElementById('backupDomain') as HTMLInputElement).value,
         preset: (document.getElementById('preset') as HTMLSelectElement).value,
-        id: currentProject.id,
-        name: currentProject.name
+        ttlDays: parseInt((document.getElementById('ttlDays') as HTMLInputElement).value) || 7,
     };
 
     try {
-        await fetch(`/api/config?project=${currentProject.id}`, {
+        await fetch(`/api/config?project=${id}`, {
             method: 'POST',
             body: JSON.stringify(data),
             headers: { 
@@ -261,21 +291,47 @@ configForm.addEventListener('submit', async (e) => {
                 'Authorization': `Bearer ${currentToken}`
             }
         });
-        showToast('Version Generated (Snapshot Created)');
-        switchProject(currentProject.id); // Reload
+        showToast(isCreatingNew ? 'Project Created & Deployed' : 'Version Generated');
+        isCreatingNew = false;
+        await loadProjects();
+        switchProject(id);
     } catch (e) {
         showToast('Save failed', 'error');
     }
 });
 
+deleteProjectBtn.addEventListener('click', async () => {
+    if (!currentProject) return;
+    if (!confirm(`Are you sure you want to delete "${currentProject.name}"? This cannot be undone.`)) return;
+
+    try {
+        await fetch(`/api/projects?id=${currentProject.id}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${currentToken}` }
+        });
+        showToast('Project Deleted');
+        currentProject = null;
+        await loadProjects();
+        switchTab('dashboard');
+    } catch (e) {
+        showToast('Delete failed', 'error');
+    }
+});
+
 // --- Tabs ---
+function switchTab(target: string) {
+    document.querySelectorAll('.tab-btn').forEach(b => {
+        if ((b as HTMLElement).dataset.tab === target) b.classList.add('active');
+        else b.classList.remove('active');
+    });
+    document.querySelectorAll('main > .container > section').forEach(s => s.classList.add('hidden'));
+    document.getElementById(`tab-${target}`)?.classList.remove('hidden');
+}
+
 document.querySelectorAll('.tab-btn').forEach(btn => {
     btn.addEventListener('click', () => {
         const target = (btn as HTMLElement).dataset.tab;
-        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        document.querySelectorAll('main > .container > section').forEach(s => s.classList.add('hidden'));
-        document.getElementById(`tab-${target}`)?.classList.remove('hidden');
+        if (target) switchTab(target);
     });
 });
 
