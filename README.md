@@ -1,35 +1,37 @@
-# Walkthrough - Nilüfer Ormanlı Orchestra-v1 (Signal-Path Optimization)
+# Walkthrough - Signal-Path Platform (Multi-Project V2)
 
-The system has been upgraded to a production-ready "Command Center" with segmented tracking and professional UI.
+The system has evolved into a professional **Multi-Project Tracking Platform**. You can now manage multiple funnels, handle versions, and use ready-made presets from a single dashboard.
 
-## Changes Made
+## Key Capabilities (V2)
 
-### 1. Script Segmentation
-- **Header Script (`header.js`)**: Handles attribution capture (Last-Click) and pixel initialization. Fires `page_view`.
-- **Checkout Script (`checkout.js`)**: Specifically for checkout pages. Fires `begin_checkout` (GA4) and `InitiateCheckout` (Meta).
-- **Thank-You Script (`thankyou.js`)**: Fires `purchase` events and performs **Session Cleanup** (removes attribution data from localStorage after conversion).
+### 1. Multi-Project Management
+- **Sidebar Selector**: Easily switch between independent projects.
+- **Project Specific Settings**: Each project has its own GA/Meta IDs, Domains, and Attribution rules.
+- **Creation Flow**: "New Project" button to bootstrap a fresh tracking environment in seconds.
 
-### 2. Admin Command Center
-- **Login Gate**: Secure access using the `ADMIN_TOKEN`.
-- **Infrastructure Pulse**: Real-time HTTP health checks for Primary and Backup CDN URLs.
-- **Tabbed Interface**:
-  - **Monitoring**: System status summary and emergency action center.
-  - **Configuration**: Direct control over Tracking IDs and defaults.
-  - **Snippets**: Dynamic embed code generator with one-tap copy functionality.
+### 2. Version Control & Rollback
+- **Auto-Snapshots**: Every time you save a configuration, a new version (v1, v2...) is created.
+- **One-Click Rollback**: Instantly revert to a previous version if a configuration error occurs.
+- **Dynamic Delivery**: Scripts are served via `/api/scripts/{project}/{version}/header.js`, ensuring they always match the selected version's config.
 
-### 3. Data Integrity & Resilience
-- **Last-Click Attribution**: Updates stored parameters if a user arrives with new UTMs.
-- **Fail-Safe Delivery**: Standard loader pattern with automatic fallback.
-- **Debug Mode**: `?cos_debug=true` prints the full attribution payload and event status.
+### 3. Smart Presets & Logic
+- **Kartra Funnel**: Standard tracking with ViewContent -> InitiateCheckout -> Purchase.
+- **Simple Landing**: Lightweight tracking for standalone pages.
+- **Minimal Mode**: Analytics-only (GA) mode that completely bypasses Meta Pixel scripts for privacy or speed.
+- **Adjustable TTL**: Set custom attribution windows (default 7 days).
 
-## How to use the new Admin Panel
-1. Access your `pages.dev` URL.
-2. Enter your `ADMIN_TOKEN`.
-3. Use the **Configuration** tab to set IDs.
-4. Copy the scripts from the **Snippets** tab and paste them into Kartra appropriately.
+### 4. Integrated Monitoring & Help
+- **Pulse Check**: Real-time monitoring of script domains for each project.
+- **Unified Snippets**: Copy-paste ready codes for Header, Checkout, and Thank-you pages.
+- **Platform Manual**: In-app "DO/DON'T" guide for best practices.
 
-## Verification Results
-- [x] **Auth Check**: Unauthorized access is blocked.
-- [x] **Health Check**: Dashboard correctly identifies "Online" vs "Offline" status.
-- [x] **Event Firing**: Validated `header`, `checkout`, and `thankyou` segments fire events with correct payloads.
-- [x] **Storage Cleanup**: Storage is wiped after purchase success.
+## How to Get Started
+1. Open your Admin Panel and login with `ADMIN_TOKEN`.
+2. Click **"+ New Project"** and name it.
+3. In **Configuration**, enter your GA and Meta IDs.
+4. Select a **Preset** (e.g., Kartra Standard).
+5. Click **"Generate New Version"**.
+6. Go to the **Snippets** tab and copy your codes.
+
+## Important: KV Configuration
+For multi-project to work, ensures your Cloudflare Pages KV Namespace is bound to `SIGNAL_CONFIG_KV_NILUFER`. The system handles the rest!
