@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nilüfer Orchestra Admin</title>
+    <style>
+        :root {
+            --primary: #6366f1;
+            --bg: #0f172a;
+            --card: #1e293b;
+            --text: #f8fafc;
+            --accent: #10b981;
+        }
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            width: 100%;
+            max-width: 500px;
+            padding: 2rem;
+            background: var(--card);
+            border-radius: 1rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+        h1 { margin-bottom: 1.5rem; font-size: 1.5rem; text-align: center; color: var(--primary); }
+        .field { margin-bottom: 1rem; }
+        label { display: block; margin-bottom: 0.5rem; font-size: 0.875rem; color: #94a3b8; }
+        input {
+            width: 100%;
+            padding: 0.75rem;
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 0.5rem;
+            color: white;
+            box-sizing: border-box;
+        }
+        button {
+            width: 100%;
+            padding: 0.75rem;
+            background: var(--primary);
+            border: none;
+            border-radius: 0.5rem;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.2s;
+            margin-top: 1rem;
+        }
+        button:hover { opacity: 0.9; }
+        .status {
+            margin-top: 1rem;
+            text-align: center;
+            font-size: 0.875rem;
+            padding: 0.5rem;
+            border-radius: 0.25rem;
+            display: none;
+        }
+        .status.success { display: block; background: rgba(16, 185, 129, 0.1); color: var(--accent); }
+        .version-info {
+            margin-top: 2rem;
+            font-size: 0.75rem;
+            color: #475569;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Orchestra-v1 Admin</h1>
+        <form id="configForm">
+            <div class="field">
+                <label>GA4 Measurement ID</label>
+                <input type="text" id="gaId" placeholder="G-XXXXXXXXXX" required>
+            </div>
+            <div class="field">
+                <label>Meta Pixel ID</label>
+                <input type="text" id="pixelId" placeholder="XXXXXXXXXX" required>
+            </div>
+            <div class="field">
+                <label>Default Language</label>
+                <input type="text" id="defaultLang" placeholder="en" required>
+            </div>
+            <div class="field">
+                <label>Default Market</label>
+                <input type="text" id="defaultMarket" placeholder="global" required>
+            </div>
+            <button type="submit">Save Configuration</button>
+        </form>
+        <div id="status" class="status">Saved Successfully!</div>
+        
+        <div class="version-info">
+            Active Version: v1.0.0 | <a href="/loader.js" target="_blank" style="color: var(--primary); text-decoration: none;">Get Loader Snippet</a>
+        </div>
+    </div>
+    <script type="module" src="/src/admin/main.ts"></script>
+</body>
+</html>
