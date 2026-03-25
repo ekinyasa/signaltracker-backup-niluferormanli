@@ -1,28 +1,29 @@
-# Walkthrough - Signal-Path Platform (V2.3 UX Optimization)
+# Walkthrough - Signal-Path Platform (V2.4 Standardization)
 
-Version **2.3** focuses on pixel-perfect styling and a significantly more intuitive project management workflow.
+Version **2.4** ensures 100% compatibility with official advertising standards while bypassing the strict HTML limitations of platforms like Kartra.
 
-## Key Improvements in V2.3
+## Key Technical Standards in V2.4
 
-### 1. Custom Aesthetic Selector
-- **Custom Dropdown**: Replaced the browser-native `<select>` with a fully custom component.
-- **Styling**: Text is now `0.7rem`, non-bold, and perfectly centered with reduced padding for a premium, minimal look.
-- **Improved UX**: The dropdown list appears smoothly and closes when clicking outside.
+### 1. Self-Loading CDN Loader (Kartra Friendly)
+- **Problem**: Some platforms only allow `<script>` tags and lack custom HTML support.
+- **Solution**: The Admin Panel now generates a self-executing JS function.
+- **Reliability**: It tries the **Primary CDN** and if it fails (or takes >2.5s), it automatically falls back to the **Backup CDN**.
+- **Compatibility**: No more `<noscript>` or `<meta>` tags needed in the raw HTML; the loader handles everything.
 
-### 2. Unified Creation & Metadata Sync
-- **No More Modals**: "+ Create New Project" no longer opens a prompt. Instead, it leads you directly to a clean **Configuration** tab.
-- **Project Name Editing**: You can now change the name of an existing project directly from the "Project Name" field in the config. Changes sync immediately to the sidebar and header.
-- **Combined Save**: One single "Save & Deploy" button handles both metadata updates (name changes) and configuration snapshots (deployments).
+### 2. JS-Based Tag Injection
+- **Meta Verification**: The system dynamically injects the `facebook-domain-verification` meta tag into the `<head>` via JavaScript.
+- **Noscript Pixel**: Even though JS is required to run our scripts, we now inject a hidden `<img>` tracking pixel into the DOM to satisfy Meta's audit requirements.
 
-### 3. Permanent Management
-- **Delete Project**: Added a new "Delete Project Permanently" button at the bottom of the Configuration tab for easy cleanup.
+### 3. Precision Tracking
+- **Official Snippet Match**: The GA4 (`gtag`) and Meta Pixel (`fbq`) initialization logic now exactly matches the latest official snippets from Google and Meta.
+- **Improved Linker**: GA4 cross-domain tracking is pre-configured with your `siteDomain`.
 
-## How to use the New Flow
-1. **To Create**: Click the central selector -> **"+ Create New Project"**.
-2. **To Edit**: Go to the **Configuration** tab, change the name or IDs, and click **"Generate New Version & Deploy"**.
-3. **To Delete**: Go to the bottom of the **Configuration** tab and confirm deletion.
+## How to use V2.4 Snippets
+1. Go to the **Snippets** tab in the Admin Panel.
+2. Copy the **Source Embed** (it is now a clean JS block).
+3. Paste it into Kartra's script section.
+4. Profit from automatic CDN fallback and 100% standard tracking.
 
 ## Verification
-- Check the header: Text should be smaller (`0.7rem`), centered, and non-bold.
-- Try creating a project: It should open the form without a popup.
-- Compare with GitHub/Cloudflare: Look for version `V2.3 | Hash`.
+- Check your browser's `<head>`: You should see the `facebook-domain-verification` tag appears after the script loads.
+- Check Network Tab: You should see the Meta Pixel `tr?id=...` request firing even without a traditional `<noscript>` tag.
