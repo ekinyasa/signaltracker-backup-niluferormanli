@@ -1,34 +1,44 @@
 import type { TrackingConfig, AttributionData } from './types';
 
 export function initPixels(config: TrackingConfig, attr: AttributionData) {
-  // GA4 Initialization
+  // 1. Meta Domain Verification (JS Injection for Kartra Compatibility)
+  const fbVerifyId = (config as any).fbVerifyId;
+  if (fbVerifyId) {
+    const meta = document.createElement('meta');
+    meta.name = 'facebook-domain-verification';
+    meta.content = fbVerifyId;
+    document.head.appendChild(meta);
+  }
+
+  // 2. GA4 Initialization (Standard GTAG snippet logic)
   const gaId = config.gaId;
-  const script = document.createElement('script');
-  script.async = true;
-  script.src = `https://www.googletagmanager.com/gtag/js?id=${gaId}`;
-  document.head.appendChild(script);
+  if (gaId) {
+    const script = document.createElement('script');
+    script.async = true;
+    script.src = `https://www.googletagmanager.com/gtag/js?id=${gaId}`;
+    document.head.appendChild(script);
 
-  window.dataLayer = window.dataLayer || [];
-  window.gtag = function() {
-    window.dataLayer.push(arguments);
-  };
-  window.gtag('js', new Date());
+    window.dataLayer = window.dataLayer || [];
+    window.gtag = function() {
+      window.dataLayer.push(arguments);
+    };
+    window.gtag('js', new Date());
 
-  // GA4 Configuration with Linker and Custom Dimensions
-  window.gtag('config', gaId, {
-    linker: {
-      domains: ['niluferormanli.com', 'niluferormanli.studio']
-    },
-    campaign_id: attr.cid || '',
-    lang: attr.lang || config.defaultLang,
-    market: attr.market || config.defaultMarket,
-    utm_source: attr.utm_source || '',
-    utm_medium: attr.utm_medium || '',
-    utm_campaign: attr.utm_campaign || '',
-    cos_win: attr.cos_win || ''
-  });
+    window.gtag('config', gaId, {
+      linker: {
+        domains: [(config as any).siteDomain || 'niluferormanli.studio', 'niluferormanli.com']
+      },
+      campaign_id: attr.cid || '',
+      lang: attr.lang || config.defaultLang,
+      market: attr.market || config.defaultMarket,
+      utm_source: attr.utm_source || '',
+      utm_medium: attr.utm_medium || '',
+      utm_campaign: attr.utm_campaign || '',
+      cos_win: attr.cos_win || ''
+    });
+  }
 
-  // Meta Pixel Initialization
+  // 3. Meta Pixel Initialization (Standard FBQ snippet logic)
   const pixelId = config.pixelId;
   const isMinimal = (config as any).preset === 'minimal_ga';
   
@@ -51,34 +61,39 @@ export function initPixels(config: TrackingConfig, attr: AttributionData) {
       t.async = !0;
       t.src = v;
       const s = b.getElementsByTagName(e)[0];
-      s.parentNode?.insertBefore(t, s);
+      if (s && s.parentNode) {
+        s.parentNode.insertBefore(t, s);
+      } else {
+        document.head.appendChild(t);
+      }
     }
 
     window.fbq('init', pixelId, {
       external_id: attr.cid || ''
     });
-    window.fbq('track', 'PageView', {
-      lang: attr.lang || config.defaultLang,
-      market: attr.market || config.defaultMarket
-    });
+    window.fbq('track', 'PageView');
 
-    if (window.COS_DEBUG) {
-        console.log('[COS] Pixels Initialized with Payload:', {
-            config,
-            attribution: attr
-        });
-    }
+    // Noscript Fallback Image (JS-based for verification proof)
+    const noscriptImg = document.createElement('img');
+    noscriptImg.height = 1;
+    noscriptImg.width = 1;
+    noscriptImg.style.display = 'none';
+    noscriptImg.src = `https://www.facebook.com/tr?id=${pixelId}&ev=PageView&noscript=1`;
+    document.body.appendChild(noscriptImg);
+  }
+
+  if (window.COS_DEBUG) {
+      console.log('[COS] Tracking Standardized (V2.4) for Project:', (config as any).name);
   }
 }
 
-export function trackCheckout(config: TrackingConfig, attr: AttributionData, data: any) {
+export function trackCheckout(_config: TrackingConfig, attr: AttributionData, data: any) {
   // GA4
   window.gtag('event', 'begin_checkout', {
     value: parseFloat(data.value || 0),
     currency: data.currency || 'TRY',
     items: data.items || [],
-    lang: attr.lang || config.defaultLang,
-    market: attr.market || config.defaultMarket
+    campaign_id: attr.cid || ''
   });
 
   // Meta
@@ -86,39 +101,32 @@ export function trackCheckout(config: TrackingConfig, attr: AttributionData, dat
     window.fbq('track', 'InitiateCheckout', {
         value: parseFloat(data.value || 0),
         currency: data.currency || 'TRY',
-        lang: attr.lang || config.defaultLang,
-        market: attr.market || config.defaultMarket
+        content_ids: data.items?.map((i: any) => i.id) || [],
+        content_type: 'product'
     });
   }
-
-  if (window.COS_DEBUG) console.log('[COS] Checkout Event Tracked', data);
 }
 
-export function trackPurchase(config: TrackingConfig, attr: AttributionData, data: any) {
+export function trackPurchase(_config: TrackingConfig, attr: AttributionData, data: any) {
   const { value, currency, transaction_id } = data;
 
-  // GA4 Purchase
+  // GA4
   window.gtag('event', 'purchase', {
     transaction_id,
     value: parseFloat(value),
     currency,
     items: data.items || [],
-    campaign_id: attr.cid || '',
-    lang: attr.lang || config.defaultLang,
-    market: attr.market || config.defaultMarket
+    campaign_id: attr.cid || ''
   });
 
-  // Meta Purchase
+  // Meta
   if (window.fbq) {
     window.fbq('track', 'Purchase', {
         value: parseFloat(value),
         currency,
-        content_ids: data.content_ids || [],
+        content_ids: data.items?.map((i: any) => i.id) || [],
         content_type: 'product',
-        lang: attr.lang || config.defaultLang,
-        market: attr.market || config.defaultMarket
+        external_id: attr.cid || ''
     });
   }
-
-  if (window.COS_DEBUG) console.log('[COS] Purchase Event Tracked', data);
 }

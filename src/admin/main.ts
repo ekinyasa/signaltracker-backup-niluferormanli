@@ -139,18 +139,14 @@ function renderSelectors() {
         </li>
     `).join('');
     
-    // Keep the "New" button, then add projects
     selectOptions.innerHTML = `<li class="option-item new-btn" id="headerNewBtn">+ Create New Project</li>` + projectOptions;
     
-    // Re-attach new btn listener since we innerHTML'd it
     document.getElementById('headerNewBtn')?.addEventListener('click', prepareNewProject);
 
-    // Attach listeners to options
     document.querySelectorAll('.option-item[data-id]').forEach(opt => {
         opt.addEventListener('click', () => switchProject((opt as HTMLElement).dataset.id!));
     });
 
-    // Update Trigger Text
     if (!isCreatingNew) {
         selectTrigger.textContent = currentProject?.name || 'Select a Project';
     }
@@ -183,6 +179,7 @@ function renderProjectConfig() {
     (document.getElementById('projectName') as HTMLInputElement).value = currentProject.name || '';
     (document.getElementById('gaId') as HTMLInputElement).value = currentProject.gaId || '';
     (document.getElementById('pixelId') as HTMLInputElement).value = currentProject.pixelId || '';
+    (document.getElementById('fbVerifyId') as HTMLInputElement).value = (currentProject as any).fbVerifyId || '';
     (document.getElementById('siteDomain') as HTMLInputElement).value = currentProject.siteDomain || '';
     (document.getElementById('scriptDomain') as HTMLInputElement).value = currentProject.scriptDomain || '';
     (document.getElementById('backupDomain') as HTMLInputElement).value = currentProject.backupDomain || '';
@@ -237,14 +234,41 @@ function showToast(msg: string, type: 'success' | 'error' = 'success') {
     setTimeout(() => t.remove(), 3000);
 }
 
+// --- V2.4 Fallback Loader Generator ---
+function generateLoader(primaryUrl: string, backupUrl: string) {
+    return `(function() {
+  var SOURCES = [
+    '${primaryUrl}',
+    '${backupUrl}'
+  ];
+  var loaded = false;
+  var index = 0;
+  var TIMEOUT = 2500;
+
+  function loadNext() {
+    if (loaded || index >= SOURCES.length) return;
+    var src = SOURCES[index++];
+    var s = document.createElement('script');
+    var tId = setTimeout(function() { if(!loaded) { console.warn('Timeout:', src); loadNext(); } }, TIMEOUT);
+    s.src = src;
+    s.async = true;
+    s.onload = function() { loaded = true; clearTimeout(tId); console.log('Tracker loaded:', src); };
+    s.onerror = function() { clearTimeout(tId); console.warn('Failed:', src); loadNext(); };
+    document.head.appendChild(s);
+  }
+  loadNext();
+})();`;
+}
+
 function updateSnippets() {
     if (!currentProject) return;
     const ver = currentProject.activeVersion || 'latest';
-    const base = `https://${currentProject.scriptDomain || 'scripts.domain.com'}/api/scripts/${currentProject.id}/${ver}`;
+    const primaryBase = `https://${currentProject.scriptDomain || 'scripts.domain.com'}/api/scripts/${currentProject.id}/${ver}`;
+    const backupBase = `https://${currentProject.backupDomain || 'backup.domain.com'}/api/scripts/${currentProject.id}/${ver}`;
     
-    (document.getElementById('snippetHeader') as HTMLElement).textContent = `<script src="${base}/header.js"></script>`;
-    (document.getElementById('snippetCheckout') as HTMLElement).textContent = `<script src="${base}/checkout.js"></script>`;
-    (document.getElementById('snippetThankyou') as HTMLElement).textContent = `<script src="${base}/thankyou.js"></script>`;
+    (document.getElementById('snippetHeader') as HTMLElement).textContent = generateLoader(`${primaryBase}/header.js`, `${backupBase}/header.js`);
+    (document.getElementById('snippetCheckout') as HTMLElement).textContent = generateLoader(`${primaryBase}/checkout.js`, `${backupBase}/checkout.js`);
+    (document.getElementById('snippetThankyou') as HTMLElement).textContent = generateLoader(`${primaryBase}/thankyou.js`, `${backupBase}/thankyou.js`);
 }
 
 configForm.addEventListener('submit', async (e) => {
@@ -255,7 +279,6 @@ configForm.addEventListener('submit', async (e) => {
     
     if (isCreatingNew) {
         id = name.toLowerCase().replace(/\s+/g, '_') + '_' + Date.now();
-        // Step 1: Create Project Metadata
         try {
             await fetch('/api/projects', {
                 method: 'POST',
@@ -275,6 +298,7 @@ configForm.addEventListener('submit', async (e) => {
         name,
         gaId: (document.getElementById('gaId') as HTMLInputElement).value,
         pixelId: (document.getElementById('pixelId') as HTMLInputElement).value,
+        fbVerifyId: (document.getElementById('fbVerifyId') as HTMLInputElement).value,
         siteDomain: (document.getElementById('siteDomain') as HTMLInputElement).value,
         scriptDomain: (document.getElementById('scriptDomain') as HTMLInputElement).value,
         backupDomain: (document.getElementById('backupDomain') as HTMLInputElement).value,

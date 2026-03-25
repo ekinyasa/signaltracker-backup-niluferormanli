@@ -6,8 +6,9 @@ export interface ProjectConfig {
     siteDomain: string;
     scriptDomain: string;
     backupDomain: string;
-    gaId: string;
-    pixelId: string;
+    gaId?: string;
+    pixelId?: string;
+    fbVerifyId?: string;
     defaultLang: string;
     defaultMarket: string;
     ttlDays: number;
