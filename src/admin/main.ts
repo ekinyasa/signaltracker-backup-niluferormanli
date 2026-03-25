@@ -5,44 +5,94 @@ interface TrackingConfig {
     defaultMarket: string;
 }
 
-const form = document.getElementById('configForm') as HTMLFormElement;
-const statusEl = document.getElementById('status')!;
-const tokenInput = document.getElementById('adminToken') as HTMLInputElement;
-const primaryStatusEl = document.getElementById('primaryStatus')!;
-const backupStatusEl = document.getElementById('backupStatus')!;
-const overallHealthEl = document.getElementById('overallHealth')!;
+// Elements
+const loginGate = document.getElementById('loginGate')!;
+const appHeader = document.getElementById('appHeader')!;
+const appMain = document.getElementById('appMain')!;
+const loginBtn = document.getElementById('loginBtn')!;
+const loginTokenInput = document.getElementById('loginToken') as HTMLInputElement;
+const logoutBtn = document.getElementById('logoutBtn')!;
 
-const PRIMARY_URL = 'https://scripts.niluferormanli.studio/assets/global.js';
-const BACKUP_URL = 'https://backup-scripts.niluferormanli.studio/assets/global.js';
+const tabBtns = document.querySelectorAll('.tab-btn');
+const sections = document.querySelectorAll('main > section');
 
-// Load token from localStorage if exists
-const storedToken = localStorage.getItem('COS_ADMIN_TOKEN');
-if (storedToken) {
-    tokenInput.value = storedToken;
+const configForm = document.getElementById('configForm') as HTMLFormElement;
+const pulsePrimary = document.getElementById('pulsePrimaryStatus')!;
+const pulseBackup = document.getElementById('pulseBackupStatus')!;
+const systemStatusValue = document.getElementById('systemStatusValue')!;
+const toastContainer = document.getElementById('toastContainer')!;
+
+// Constants
+const PRIMARY_BASE = 'https://scripts.niluferormanli.studio/assets/header.js';
+const BACKUP_BASE = 'https://backup-scripts.niluferormanli.studio/assets/header.js';
+
+let currentToken = localStorage.getItem('COS_ADMIN_TOKEN') || '';
+
+// --- Auth Logic ---
+function showApp() {
+    loginGate.classList.add('hidden');
+    appHeader.classList.remove('hidden');
+    appMain.classList.remove('hidden');
+    loadConfig();
+    startHealthChecks();
 }
 
+function showLogin() {
+    loginGate.classList.remove('hidden');
+    appHeader.classList.add('hidden');
+    appMain.classList.add('hidden');
+}
+
+loginBtn.addEventListener('click', () => {
+    const val = loginTokenInput.value.trim();
+    if (val) {
+        currentToken = val;
+        localStorage.setItem('COS_ADMIN_TOKEN', val);
+        showApp();
+        showToast('Authorized successfully');
+    }
+});
+
+logoutBtn.addEventListener('click', () => {
+    localStorage.removeItem('COS_ADMIN_TOKEN');
+    location.reload();
+});
+
+// --- Tab Logic ---
+tabBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+        const target = (btn as HTMLElement).dataset.tab;
+        tabBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        
+        sections.forEach(s => {
+            s.classList.add('hidden');
+            if (s.id === `tab-${target}`) s.classList.remove('hidden');
+        });
+    });
+});
+
+// --- Config Logic ---
 async function loadConfig() {
     try {
-        const response = await fetch('/api/config');
-        if (!response.ok) throw new Error('Failed to fetch config');
+        const res = await fetch('/api/config', {
+            headers: { 'Authorization': `Bearer ${currentToken}` }
+        });
+        if (res.status === 401) return showLogin();
+        if (!res.ok) throw new Error();
         
-        const config: TrackingConfig = await response.json();
-        
+        const config: TrackingConfig = await res.json();
         (document.getElementById('gaId') as HTMLInputElement).value = config.gaId || '';
         (document.getElementById('pixelId') as HTMLInputElement).value = config.pixelId || '';
         (document.getElementById('defaultLang') as HTMLInputElement).value = config.defaultLang || '';
         (document.getElementById('defaultMarket') as HTMLInputElement).value = config.defaultMarket || '';
     } catch (e) {
-        console.error('Failed to load config', e);
+        showToast('Failed to load configuration', 'error');
     }
 }
 
-form.addEventListener('submit', async (e) => {
+configForm.addEventListener('submit', async (e) => {
     e.preventDefault();
-    
-    const token = tokenInput.value;
-    localStorage.setItem('COS_ADMIN_TOKEN', token);
-
     const config: TrackingConfig = {
         gaId: (document.getElementById('gaId') as HTMLInputElement).value,
         pixelId: (document.getElementById('pixelId') as HTMLInputElement).value,
@@ -51,64 +101,77 @@ form.addEventListener('submit', async (e) => {
     };
 
     try {
-        const response = await fetch('/api/config', {
+        const res = await fetch('/api/config', {
             method: 'POST',
             body: JSON.stringify(config),
             headers: { 
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
+                'Authorization': `Bearer ${currentToken}`
             }
         });
-        
-        const result = await response.json();
-
-        if (response.ok) {
-            statusEl.textContent = 'Saved Successfully!';
-            statusEl.className = 'status success';
-            setTimeout(() => { statusEl.className = 'status'; }, 3000);
+        if (res.ok) {
+            showToast('Configuration applied safely');
         } else {
-            statusEl.textContent = `Error: ${result.error || 'Failed to save'}`;
-            statusEl.className = 'status error'; // We should add error style to CSS
-            statusEl.style.display = 'block';
-            statusEl.style.background = 'rgba(239, 68, 68, 0.1)';
-            statusEl.style.color = '#ef4444';
+            showToast('Update failed. check token.', 'error');
         }
     } catch (e) {
-        alert('Failed to save configuration. check console for details.');
+        showToast('Network error', 'error');
     }
 });
 
-async function checkHealth() {
+// --- Monitoring Logic ---
+async function checkPulse() {
     const check = async (url: string, el: HTMLElement) => {
         try {
             const start = Date.now();
-            await fetch(url, { method: 'HEAD', mode: 'no-cors', cache: 'no-cache' });
-            const duration = Date.now() - start;
-            el.textContent = `Online (${duration}ms)`;
-            el.style.color = '#10b981';
+            await fetch(url, { method: 'HEAD', mode: 'no-cors' });
+            const lat = Date.now() - start;
+            el.textContent = `ONLINE (${lat}ms)`;
+            el.style.color = 'var(--success)';
             return true;
-        } catch (e) {
-            el.textContent = 'Offline';
-            el.style.color = '#ef4444';
+        } catch {
+            el.textContent = 'OFFLINE';
+            el.style.color = 'var(--error)';
             return false;
         }
     };
 
-    const p = await check(PRIMARY_URL, primaryStatusEl);
-    const b = await check(BACKUP_URL, backupStatusEl);
+    const p = await check(PRIMARY_BASE, pulsePrimary);
+    const b = await check(BACKUP_BASE, pulseBackup);
 
     if (p && b) {
-        overallHealthEl.textContent = 'SYSTEM HEALTHY';
-        overallHealthEl.style.color = '#10b981';
+        systemStatusValue.innerHTML = '<span class="pill pill-success">Healthy</span>';
     } else if (p || b) {
-        overallHealthEl.textContent = 'DEGRADED PERFORMANCE (FALLBACK ACTIVE)';
-        overallHealthEl.style.color = '#f59e0b';
+        systemStatusValue.innerHTML = '<span class="pill pill-warning">Degraded</span>';
     } else {
-        overallHealthEl.textContent = 'CRITICAL: ALL SYSTEMS OFFLINE';
-        overallHealthEl.style.color = '#ef4444';
+        systemStatusValue.innerHTML = '<span class="pill pill-error">Critical</span>';
     }
 }
 
-loadConfig();
-checkHealth();
-setInterval(checkHealth, 30000); // Check every 30 seconds
+function startHealthChecks() {
+    checkPulse();
+    setInterval(checkPulse, 30000);
+}
+
+// --- Utils ---
+function showToast(msg: string, type: 'success' | 'error' = 'success') {
+    const t = document.createElement('div');
+    t.className = 'toast';
+    if (type === 'error') t.style.background = 'var(--error)';
+    t.textContent = msg;
+    toastContainer.appendChild(t);
+    setTimeout(() => t.remove(), 3000);
+}
+
+// Copy Logic
+document.querySelectorAll('.copy-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        const targetId = (btn as HTMLElement).dataset.target!;
+        const code = document.getElementById(targetId)!.textContent!;
+        navigator.clipboard.writeText(code);
+        showToast('Snippet copied to clipboard');
+    });
+});
+
+// Init
+if (currentToken) showApp(); else showLogin();

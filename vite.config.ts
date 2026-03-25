@@ -5,9 +5,10 @@ export default defineConfig({
   build: {
     rollupOptions: {
       input: {
-        global: resolve(__dirname, 'src/scripts/global.ts'),
+        header: resolve(__dirname, 'src/scripts/header.ts'),
+        checkout: resolve(__dirname, 'src/scripts/checkout.ts'),
         thankyou: resolve(__dirname, 'src/scripts/thankyou.ts'),
-        admin: resolve(__dirname, 'index.html'), // This is the default in vanilla-ts
+        admin: resolve(__dirname, 'index.html'),
       },
       output: {
         entryFileNames: 'assets/[name].js',

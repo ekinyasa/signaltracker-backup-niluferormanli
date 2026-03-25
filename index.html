@@ -3,120 +3,323 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nilüfer Orchestra Admin</title>
+    <title>Signal-Path | Command Center</title>
     <style>
         :root {
-            --primary: #6366f1;
-            --bg: #0f172a;
-            --card: #1e293b;
-            --text: #f8fafc;
-            --accent: #10b981;
+            --bg: #000000;
+            --card: #0a0a0a;
+            --border: #1f1f1f;
+            --text: #ededed;
+            --text-muted: #888888;
+            --primary: #ffffff;
+            --primary-hover: #cccccc;
+            --accent: #0070f3;
+            --success: #00ff00;
+            --warning: #f5a623;
+            --error: #ff0000;
+            --font: 'Inter', system-ui, -apple-system, sans-serif;
         }
+
+        * { box-sizing: border-box; }
         body {
-            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            font-family: var(--font);
             background-color: var(--bg);
             color: var(--text);
             margin: 0;
             display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Login Gate */
+        #loginGate {
+            position: fixed;
+            inset: 0;
+            background: var(--bg);
+            display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 100vh;
+            z-index: 1000;
+            transition: opacity 0.3s ease;
         }
-        .container {
+        #loginGate.hidden { opacity: 0; pointer-events: none; }
+        .login-card {
             width: 100%;
-            max-width: 500px;
-            padding: 2rem;
+            max-width: 400px;
+            padding: 2.5rem;
+            border: 1px solid var(--border);
+            border-radius: 12px;
             background: var(--card);
-            border-radius: 1rem;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            text-align: center;
         }
-        h1 { margin-bottom: 1.5rem; font-size: 1.5rem; text-align: center; color: var(--primary); }
-        .field { margin-bottom: 1rem; }
-        label { display: block; margin-bottom: 0.5rem; font-size: 0.875rem; color: #94a3b8; }
-        input {
-            width: 100%;
-            padding: 0.75rem;
-            background: #0f172a;
-            border: 1px solid #334155;
-            border-radius: 0.5rem;
-            color: white;
-            box-sizing: border-box;
+
+        /* Header */
+        header {
+            padding: 1.5rem 2rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(8px);
+            position: sticky;
+            top: 0;
+            z-index: 100;
         }
-        button {
+        .logo { font-weight: 800; font-size: 1.25rem; letter-spacing: -0.05em; }
+        .logo span { color: var(--accent); }
+
+        /* Main Content */
+        main {
+            flex: 1;
+            padding: 2rem;
+            max-width: 1000px;
+            margin: 0 auto;
             width: 100%;
-            padding: 0.75rem;
-            background: var(--primary);
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 1.5rem;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 2rem;
+        }
+        .tab-btn {
+            background: none;
             border: none;
-            border-radius: 0.5rem;
-            color: white;
+            color: var(--text-muted);
+            padding: 1rem 0;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: color 0.2s;
+            position: relative;
+        }
+        .tab-btn.active { color: var(--primary); }
+        .tab-btn.active::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--primary);
+        }
+
+        /* Grid Cards */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+        }
+        .card-title { font-size: 0.75rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; margin-bottom: 1rem; }
+        .card-value { font-size: 1.5rem; font-weight: 700; margin-bottom: 0.5rem; }
+        .card-footer { font-size: 0.8125rem; color: var(--text-muted); }
+
+        /* Status Pills */
+        .pill { 
+            padding: 0.25rem 0.5rem; 
+            border-radius: 20px; 
+            font-size: 0.6875rem; 
+            font-weight: 700; 
+            text-transform: uppercase;
+        }
+        .pill-success { background: rgba(0, 255, 0, 0.1); color: var(--success); }
+        .pill-warning { background: rgba(245, 166, 35, 0.1); color: var(--warning); }
+        .pill-error { background: rgba(255, 0, 0, 0.1); color: var(--error); }
+
+        /* Forms */
+        .input-group { margin-bottom: 1.25rem; }
+        label { display: block; font-size: 0.8125rem; color: var(--text-muted); margin-bottom: 0.5rem; }
+        input, select {
+            width: 100%;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            padding: 0.75rem;
+            border-radius: 6px;
+            color: var(--text);
+            font-size: 0.875rem;
+        }
+        input:focus { outline: none; border-color: var(--primary); }
+        
+        button.primary {
+            background: var(--primary);
+            color: var(--bg);
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
             font-weight: 600;
             cursor: pointer;
-            transition: opacity 0.2s;
-            margin-top: 1rem;
+            transition: background 0.2s;
         }
-        button:hover { opacity: 0.9; }
-        .status {
-            margin-top: 1rem;
-            text-align: center;
+        button.primary:hover { background: var(--primary-hover); }
+
+        /* Snippets */
+        .snippet-card { margin-bottom: 2rem; }
+        pre {
+            background: #000;
+            padding: 1rem;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            overflow-x: auto;
+            font-size: 0.8125rem;
+            line-height: 1.5;
+            color: #ccc;
+        }
+        .copy-btn { margin-top: 0.5rem; }
+
+        /* Toasts */
+        #toastContainer {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            z-index: 1000;
+        }
+        .toast {
+            background: var(--text);
+            color: var(--bg);
+            padding: 0.75rem 1.25rem;
+            border-radius: 6px;
             font-size: 0.875rem;
-            padding: 0.5rem;
-            border-radius: 0.25rem;
-            display: none;
+            font-weight: 500;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+            animation: slideIn 0.3s ease-out;
         }
-        .status.success { display: block; background: rgba(16, 185, 129, 0.1); color: var(--accent); }
-        .version-info {
-            margin-top: 2rem;
-            font-size: 0.75rem;
-            color: #475569;
-            text-align: center;
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .hidden { display: none !important; }
+
+        @media (max-width: 600px) {
+            main { padding: 1rem; }
+            .tabs { gap: 1rem; }
+            header { padding: 1rem; }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Orchestra-v1 Admin</h1>
-        <div id="healthStatus" style="margin-top: 1.5rem; padding: 1rem; background: rgba(15, 23, 42, 0.5); border-radius: 0.5rem; border: 1px solid #334155;">
-            <div style="font-size: 0.75rem; color: #94a3b8; margin-bottom: 0.5rem; font-weight: 600; text-transform: uppercase;">Infrastructure Health</div>
-            <div style="display: flex; justify-content: space-between; font-size: 0.875rem; margin-bottom: 0.25rem;">
-                <span>Primary CDN</span>
-                <span id="primaryStatus" style="color: #64748b;">Checking...</span>
-            </div>
-            <div style="display: flex; justify-content: space-between; font-size: 0.875rem;">
-                <span>Backup CDN</span>
-                <span id="backupStatus" style="color: #64748b;">Checking...</span>
-            </div>
-            <div id="overallHealth" style="margin-top: 0.75rem; text-align: center; font-weight: 700; font-size: 0.875rem;"></div>
-        </div>
-
-        <form id="configForm">
-            <div class="field">
-                <label>Admin Token (Security)</label>
-                <input type="password" id="adminToken" placeholder="Enter your ADMIN_TOKEN" required>
-            </div>
-            <div class="field">
-                <label>GA4 Measurement ID</label>
-                <input type="text" id="gaId" placeholder="G-XXXXXXXXXX" required>
-            </div>
-            <div class="field">
-                <label>Meta Pixel ID</label>
-                <input type="text" id="pixelId" placeholder="XXXXXXXXXX" required>
-            </div>
-            <div class="field">
-                <label>Default Language</label>
-                <input type="text" id="defaultLang" placeholder="en" required>
-            </div>
-            <div class="field">
-                <label>Default Market</label>
-                <input type="text" id="defaultMarket" placeholder="global" required>
-            </div>
-            <button type="submit">Save Configuration</button>
-        </form>
-        <div id="status" class="status">Saved Successfully!</div>
-        
-        <div class="version-info">
-            Active Version: v1.0.0 | <a href="/loader.js" target="_blank" style="color: var(--primary); text-decoration: none;">Get Loader Snippet</a>
+    <div id="loginGate">
+        <div class="login-card">
+            <div class="logo" style="margin-bottom: 1.5rem;">SIGNAL<span>PATH</span></div>
+            <p style="color: var(--text-muted); font-size: 0.875rem; margin-bottom: 2rem;">Authenticate to access the command center.</p>
+            <input type="password" id="loginToken" placeholder="ADMIN_TOKEN" style="margin-bottom: 1rem;">
+            <button class="primary" style="width: 100%;" id="loginBtn">Authorize</button>
         </div>
     </div>
+
+    <header class="hidden" id="appHeader">
+        <div class="logo">SIGNAL<span>PATH</span></div>
+        <button id="logoutBtn" style="background:none; border:none; color:var(--text-muted); font-size:0.75rem; cursor:pointer;">Logout</button>
+    </header>
+
+    <main class="hidden" id="appMain">
+        <nav class="tabs">
+            <button class="tab-btn active" data-tab="dashboard">Monitoring</button>
+            <button class="tab-btn" data-tab="config">Configuration</button>
+            <button class="tab-btn" data-tab="snippets">Snippets</button>
+        </nav>
+
+        <!-- Monitoring Section -->
+        <section id="tab-dashboard">
+            <div class="grid">
+                <div class="card">
+                    <div class="card-title">System Status</div>
+                    <div class="card-value" id="systemStatusValue"><span class="pill pill-warning">Checking...</span></div>
+                    <div class="card-footer" id="systemStatusFooter">Verifying Cloudflare edge connectivity.</div>
+                </div>
+                <div class="card">
+                    <div class="card-title">Active Delivery</div>
+                    <div class="card-value" id="activeDeliveryValue">Primary</div>
+                    <div class="card-footer">Scripts are being served via global CDN.</div>
+                </div>
+                <div class="card">
+                    <div class="card-title">Real-Time Pulse</div>
+                    <div class="card-value" style="display:flex; gap:1rem; font-size: 1rem;">
+                        <div>Primary: <span id="pulsePrimaryStatus">--</span></div>
+                        <div>Backup: <span id="pulseBackupStatus">--</span></div>
+                    </div>
+                    <div class="card-footer">Latency check every 30s.</div>
+                </div>
+            </div>
+
+            <div class="card" style="margin-top: 1.5rem;">
+                <div class="card-title">Emergency Actions</div>
+                <div style="display:flex; gap:1rem;">
+                    <button class="primary" style="background: #ef4444; color: white;" id="forceBackupBtn">Force Backup Mode</button>
+                    <button class="primary" style="background: transparent; border: 1px solid var(--border); color: var(--text-muted);" id="purgeBtn">Purge CDN Cache</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Configuration Section -->
+        <section id="tab-config" class="hidden">
+            <div class="card">
+                <div class="card-title">Global Settings</div>
+                <form id="configForm">
+                    <div class="grid" style="grid-template-columns: 1fr 1fr;">
+                        <div class="input-group">
+                            <label>GA4 Measurement ID</label>
+                            <input type="text" id="gaId" placeholder="G-XXXXXXXXXX" required>
+                        </div>
+                        <div class="input-group">
+                            <label>Meta Pixel ID</label>
+                            <input type="text" id="pixelId" placeholder="XXXXXXXXXX" required>
+                        </div>
+                        <div class="input-group">
+                            <label>Default Language</label>
+                            <input type="text" id="defaultLang" placeholder="en" required>
+                        </div>
+                        <div class="input-group">
+                            <label>Default Market</label>
+                            <input type="text" id="defaultMarket" placeholder="global" required>
+                        </div>
+                    </div>
+                    <button type="submit" class="primary">Apply Configurations</button>
+                </form>
+            </div>
+        </section>
+
+        <!-- Snippets Section -->
+        <section id="tab-snippets" class="hidden">
+             <div class="snippet-card">
+                 <div class="card-title">1. Global Header Script</div>
+                 <p style="font-size: 0.8125rem; color: var(--text-muted); margin-bottom: 1rem;">Paste this in the &lt;head&gt; of EVERY page in your funnel.</p>
+                 <pre id="snippetHeader">&lt;script src="https://scripts.niluferormanli.studio/assets/header.js"&gt;&lt;/script&gt;</pre>
+                 <button class="primary copy-btn" data-target="snippetHeader">Copy Header Script</button>
+             </div>
+
+             <div class="snippet-card">
+                 <div class="card-title">2. Checkout Script</div>
+                 <p style="font-size: 0.8125rem; color: var(--text-muted); margin-bottom: 1rem;">Paste this only on your CHECKOUT PAGE.</p>
+                 <pre id="snippetCheckout">&lt;script src="https://scripts.niluferormanli.studio/assets/checkout.js"&gt;&lt;/script&gt;</pre>
+                 <button class="primary copy-btn" data-target="snippetCheckout">Copy Checkout Script</button>
+             </div>
+
+             <div class="snippet-card">
+                 <div class="card-title">3. Thank-You Script</div>
+                 <p style="font-size: 0.8125rem; color: var(--text-muted); margin-bottom: 1rem;">Paste this only on your SUCCESS / THANK YOU page.</p>
+                 <pre id="snippetThankyou">&lt;script src="https://scripts.niluferormanli.studio/assets/thankyou.js"&gt;&lt;/script&gt;</pre>
+                 <button class="primary copy-btn" data-target="snippetThankyou">Copy Thank-You Script</button>
+             </div>
+        </section>
+    </main>
+
+    <div id="toastContainer"></div>
+
     <script type="module" src="/src/admin/main.ts"></script>
 </body>
 </html>

@@ -1,15 +1,15 @@
 import { trackPurchase } from './pixel';
+import { clearAttribution } from './attribution';
 import type { TrackingConfig, AttributionData } from './types';
 
 async function start() {
   const attr = window.COS_ATTR || JSON.parse(localStorage.getItem('nilufer_orchestra_attr') || '{}');
-  
+  if (window.location.search.includes('cos_debug=true')) (window as any).COS_DEBUG = true;
+
   try {
     const response = await fetch('/api/config');
     const config: TrackingConfig = await response.json();
 
-    // Map Kartra data if possible
-    // Example: window.kartra_data
     const kartraData = (window as any).kartra_data || {};
     
     trackPurchase(config, attr as AttributionData, {
@@ -18,8 +18,12 @@ async function start() {
       currency: kartraData.currency || 'TRY',
       items: kartraData.items || []
     });
+
+    // Cleanup session after successful purchase
+    clearAttribution();
+    
   } catch (e) {
-    if (window.COS_DEBUG) console.error('[COS] Thank-you tracking failed', e);
+    if ((window as any).COS_DEBUG) console.error('[COS] Thank-you tracking failed', e);
   }
 }
 

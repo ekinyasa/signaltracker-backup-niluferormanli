@@ -59,7 +59,33 @@ export function initPixels(config: TrackingConfig, attr: AttributionData) {
     market: attr.market || config.defaultMarket
   });
 
-  if (window.COS_DEBUG) console.log('[COS] Pixels Initialized');
+  if (window.COS_DEBUG) {
+      console.log('[COS] Pixels Initialized with Payload:', {
+          config,
+          attribution: attr
+      });
+  }
+}
+
+export function trackCheckout(config: TrackingConfig, attr: AttributionData, data: any) {
+  // GA4
+  window.gtag('event', 'begin_checkout', {
+    value: parseFloat(data.value || 0),
+    currency: data.currency || 'TRY',
+    items: data.items || [],
+    lang: attr.lang || config.defaultLang,
+    market: attr.market || config.defaultMarket
+  });
+
+  // Meta
+  window.fbq('track', 'InitiateCheckout', {
+    value: parseFloat(data.value || 0),
+    currency: data.currency || 'TRY',
+    lang: attr.lang || config.defaultLang,
+    market: attr.market || config.defaultMarket
+  });
+
+  if (window.COS_DEBUG) console.log('[COS] Checkout Event Tracked', data);
 }
 
 export function trackPurchase(config: TrackingConfig, attr: AttributionData, data: any) {

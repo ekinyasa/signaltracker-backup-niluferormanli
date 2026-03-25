@@ -24,7 +24,9 @@ export function getAttribution(): AttributionData {
       timestamp: now
     };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-    if (window.COS_DEBUG) console.log('[COS] Attribution found in URL and stored:', data);
+    if (window.COS_DEBUG) {
+        console.log('[COS] Attribution UPDATED (Last-Click):', data);
+    }
     return data;
   }
 
@@ -32,7 +34,7 @@ export function getAttribution(): AttributionData {
   if (stored) {
     try {
       const data = JSON.parse(stored) as AttributionData;
-      if (window.COS_DEBUG) console.log('[COS] Attribution loaded from localStorage:', data);
+      if (window.COS_DEBUG) console.log('[COS] Attribution active:', data);
       return data;
     } catch (e) {
       if (window.COS_DEBUG) console.warn('[COS] Failed to parse stored attribution');
@@ -40,6 +42,11 @@ export function getAttribution(): AttributionData {
   }
 
   return { timestamp: now };
+}
+
+export function clearAttribution() {
+  localStorage.removeItem(STORAGE_KEY);
+  if (window.COS_DEBUG) console.log('[COS] Attribution CLEARED (Post-Purchase)');
 }
 
 export function initCOS() {
