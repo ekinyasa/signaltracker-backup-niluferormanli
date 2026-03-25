@@ -1,24 +1,19 @@
 import { initCOS } from './attribution';
 import { initPixels } from './pixel';
-import type { TrackingConfig } from './types';
+import type { ProjectConfig } from './types';
+
+declare global {
+    interface Window {
+        COS_CONFIG?: ProjectConfig;
+    }
+}
 
 async function start() {
-  if (window.location.search.includes('cos_debug=true') || localStorage.getItem('COS_DEBUG') === 'true') {
-    window.COS_DEBUG = true;
-  }
+  const config = window.COS_CONFIG;
+  if (!config) return;
 
-  initCOS();
-
-  try {
-    const response = await fetch('/api/config');
-    const config: TrackingConfig = await response.json();
-    
-    if (window.COS_ATTR) {
-      initPixels(config, window.COS_ATTR);
-    }
-  } catch (e) {
-    if (window.COS_DEBUG) console.error('[COS] Header Config Load Failed', e);
-  }
+  initCOS(config);
+  initPixels(config as any, window.COS_ATTR!);
 }
 
 start();

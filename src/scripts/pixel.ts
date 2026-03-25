@@ -30,40 +30,44 @@ export function initPixels(config: TrackingConfig, attr: AttributionData) {
 
   // Meta Pixel Initialization
   const pixelId = config.pixelId;
-  const f = window as any;
-  const b = document;
-  const e = 'script';
-  const v = 'https://connect.facebook.net/en_US/fbevents.js';
+  const isMinimal = (config as any).preset === 'minimal_ga';
+  
+  if (pixelId && !isMinimal) {
+    const f = window as any;
+    const b = document;
+    const e = 'script';
+    const v = 'https://connect.facebook.net/en_US/fbevents.js';
 
-  if (!f.fbq) {
-    const n: any = f.fbq = function() {
-      n.callMethod ? n.callMethod.apply(n, arguments) : n.queue.push(arguments);
-    };
-    if (!f._fbq) f._fbq = n;
-    n.push = n;
-    n.loaded = !0;
-    n.version = '2.0';
-    n.queue = [];
-    const t = b.createElement(e) as HTMLScriptElement;
-    t.async = !0;
-    t.src = v;
-    const s = b.getElementsByTagName(e)[0];
-    s.parentNode?.insertBefore(t, s);
-  }
+    if (!f.fbq) {
+      const n: any = f.fbq = function() {
+        n.callMethod ? n.callMethod.apply(n, arguments) : n.queue.push(arguments);
+      };
+      if (!f._fbq) f._fbq = n;
+      n.push = n;
+      n.loaded = !0;
+      n.version = '2.0';
+      n.queue = [];
+      const t = b.createElement(e) as HTMLScriptElement;
+      t.async = !0;
+      t.src = v;
+      const s = b.getElementsByTagName(e)[0];
+      s.parentNode?.insertBefore(t, s);
+    }
 
-  window.fbq('init', pixelId, {
-    external_id: attr.cid || ''
-  });
-  window.fbq('track', 'PageView', {
-    lang: attr.lang || config.defaultLang,
-    market: attr.market || config.defaultMarket
-  });
+    window.fbq('init', pixelId, {
+      external_id: attr.cid || ''
+    });
+    window.fbq('track', 'PageView', {
+      lang: attr.lang || config.defaultLang,
+      market: attr.market || config.defaultMarket
+    });
 
-  if (window.COS_DEBUG) {
-      console.log('[COS] Pixels Initialized with Payload:', {
-          config,
-          attribution: attr
-      });
+    if (window.COS_DEBUG) {
+        console.log('[COS] Pixels Initialized with Payload:', {
+            config,
+            attribution: attr
+        });
+    }
   }
 }
 
@@ -78,12 +82,14 @@ export function trackCheckout(config: TrackingConfig, attr: AttributionData, dat
   });
 
   // Meta
-  window.fbq('track', 'InitiateCheckout', {
-    value: parseFloat(data.value || 0),
-    currency: data.currency || 'TRY',
-    lang: attr.lang || config.defaultLang,
-    market: attr.market || config.defaultMarket
-  });
+  if (window.fbq) {
+    window.fbq('track', 'InitiateCheckout', {
+        value: parseFloat(data.value || 0),
+        currency: data.currency || 'TRY',
+        lang: attr.lang || config.defaultLang,
+        market: attr.market || config.defaultMarket
+    });
+  }
 
   if (window.COS_DEBUG) console.log('[COS] Checkout Event Tracked', data);
 }
@@ -103,14 +109,16 @@ export function trackPurchase(config: TrackingConfig, attr: AttributionData, dat
   });
 
   // Meta Purchase
-  window.fbq('track', 'Purchase', {
-    value: parseFloat(value),
-    currency,
-    content_ids: data.content_ids || [],
-    content_type: 'product',
-    lang: attr.lang || config.defaultLang,
-    market: attr.market || config.defaultMarket
-  });
+  if (window.fbq) {
+    window.fbq('track', 'Purchase', {
+        value: parseFloat(value),
+        currency,
+        content_ids: data.content_ids || [],
+        content_type: 'product',
+        lang: attr.lang || config.defaultLang,
+        market: attr.market || config.defaultMarket
+    });
+  }
 
   if (window.COS_DEBUG) console.log('[COS] Purchase Event Tracked', data);
 }

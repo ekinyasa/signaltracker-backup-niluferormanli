@@ -1,15 +1,16 @@
-import type { AttributionData } from './types';
+import type { AttributionData, ProjectConfig } from './types';
 
 const STORAGE_KEY = 'nilufer_orchestra_attr';
 
-export function getAttribution(): AttributionData {
+export function getAttribution(config?: ProjectConfig) {
   const urlParams = new URLSearchParams(window.location.search);
+  const params = ['utm_source', 'utm_medium', 'utm_campaign', 'lang', 'market', 'cid', 'cos_win'];
   const now = Date.now();
+  const ttl = (config?.ttlDays || 7) * 24 * 60 * 60 * 1000;
 
-  const newAttr: Partial<AttributionData> = {};
-  const params = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content', 'lang', 'market', 'cid', 'cos_win'];
-
+  let newAttr: Partial<AttributionData> = {};
   let foundInUrl = false;
+  
   params.forEach(param => {
     const value = urlParams.get(param);
     if (value) {
@@ -24,9 +25,6 @@ export function getAttribution(): AttributionData {
       timestamp: now
     };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-    if (window.COS_DEBUG) {
-        console.log('[COS] Attribution UPDATED (Last-Click):', data);
-    }
     return data;
   }
 
@@ -34,10 +32,14 @@ export function getAttribution(): AttributionData {
   if (stored) {
     try {
       const data = JSON.parse(stored) as AttributionData;
-      if (window.COS_DEBUG) console.log('[COS] Attribution active:', data);
+      // Check TTL
+      if (now - data.timestamp > ttl) {
+          localStorage.removeItem(STORAGE_KEY);
+          return { timestamp: now };
+      }
       return data;
     } catch (e) {
-      if (window.COS_DEBUG) console.warn('[COS] Failed to parse stored attribution');
+      if (window.COS_DEBUG) console.warn('[COS] Parse error');
     }
   }
 
@@ -46,12 +48,9 @@ export function getAttribution(): AttributionData {
 
 export function clearAttribution() {
   localStorage.removeItem(STORAGE_KEY);
-  if (window.COS_DEBUG) console.log('[COS] Attribution CLEARED (Post-Purchase)');
 }
 
-export function initCOS() {
-  window.COS_ATTR = getAttribution();
-  if (window.COS_DEBUG) {
-    console.log('[COS] System Initialized', window.COS_ATTR);
-  }
+export function initCOS(config?: ProjectConfig) {
+  if (window.location.search.includes('cos_debug=true')) window.COS_DEBUG = true;
+  window.COS_ATTR = getAttribution(config);
 }
