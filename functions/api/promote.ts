@@ -29,12 +29,12 @@ export const onRequest: PagesFunction = async (context) => {
 
   // 2. Relay to Backup
   try {
-    const res = await fetch(backupWebhook, {
+    const backupRes = await fetch(backupWebhook, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'X-Signal-Key': backupDeployKey || '',
-        'Authorization': `Bearer ${env.ADMIN_TOKEN}` // Also pass our token if it's a sibling instance
+        'Authorization': `Bearer ${env.ADMIN_TOKEN}`
       },
       body: JSON.stringify({
         action: 'sync_config',
@@ -42,10 +42,13 @@ export const onRequest: PagesFunction = async (context) => {
       })
     });
 
-    const result = await res.json();
+    const isJson = backupRes.headers.get('content-type')?.includes('application/json');
+    const backupData = isJson ? await backupRes.json() : await backupRes.text();
+
     return new Response(JSON.stringify({
-      success: res.ok,
-      backup_response: result
+      success: backupRes.ok,
+      status: backupRes.status,
+      backup_response: backupData
     }), {
       headers: { 'Content-Type': 'application/json' }
     });
