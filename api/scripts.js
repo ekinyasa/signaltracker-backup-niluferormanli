@@ -37,6 +37,7 @@ export default function handler(req, res) {
       window.COS_VERSION = "${version}";
       // Note: In Vercel, assets must be served from /public or /dist
       const s = document.createElement('script');
+      s.type = 'module';
       s.src = 'https://' + window.COS_CONFIG.scriptDomain + '/assets/${scriptType}.js';
       s.async = true;
       document.head.appendChild(s);
