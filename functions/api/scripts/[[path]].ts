@@ -6,9 +6,9 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
   const url = new URL(context.request.url);
   const pathParts = url.pathname.split('/');
   // Expected: /api/scripts/:project/:version/:type.js
-  const project = pathParts[3];
-  const version = pathParts[4];
-  const filename = pathParts[5];
+  const project = decodeURIComponent(pathParts[3] || '');
+  const version = pathParts[4] || '';
+  const filename = pathParts[5] || '';
 
   if (!project || !version || !filename) {
     return new Response('Not Found', { status: 404 });
