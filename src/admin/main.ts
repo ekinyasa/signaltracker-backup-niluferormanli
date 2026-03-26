@@ -254,13 +254,22 @@ promoteBtn.addEventListener('click', async () => {
         const res = await fetch(`/api/promote?project=${currentProject.id}`, {
             headers: { 'Authorization': `Bearer ${currentToken}` }
         });
-        const data = await res.json();
+        
+        const contentType = res.headers.get('content-type');
+        let data;
+        if (contentType && contentType.includes('application/json')) {
+            data = await res.json();
+        } else {
+            const raw = await res.text();
+            data = { success: false, error: 'Raw Response', details: raw };
+        }
+
         console.log('[Promote Debug]', data);
         
         if (data.success) {
             showToast('Promoted to Backup Successfully');
         } else {
-            showToast(`Promotion failed (Status ${data.status || res.status})`, 'error');
+            showToast(`Promotion failed (Status ${res.status})`, 'error');
             console.error('Promotion Error Details:', data);
         }
     } catch (e) {
