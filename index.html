@@ -250,13 +250,20 @@
                         <div class="card-value" id="systemStatusValue">--</div>
                     </div>
                     <div class="card">
-                        <div class="card-label">Tracking Pulse</div>
-                        <div style="font-size: 0.8125rem;">
-                            <div style="display:flex; justify-content:space-between; margin-bottom:0.4rem;">
-                                <span>Primary</span> <span id="pulsePrimaryStatus">--</span>
+                        <div class="card-label">Tracking Pulse (Precision)</div>
+                        <div style="font-size: 0.65rem; color: var(--text-muted); display: grid; grid-template-columns: 1fr 1fr 1fr; margin-bottom: 0.5rem; text-align: center; border-bottom: 1px solid var(--border); padding-bottom: 0.25rem;">
+                            <span>Target</span> <span>Server</span> <span>Script</span>
+                        </div>
+                        <div id="pulseContainer" style="font-size: 0.7rem;">
+                            <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; align-items: center; margin-bottom: 0.4rem; text-align: center;">
+                                <span style="text-align: left;">Primary</span> 
+                                <span id="pulsePrimaryInfra">--</span>
+                                <span id="pulsePrimaryScript">--</span>
                             </div>
-                            <div style="display:flex; justify-content:space-between;">
-                                <span>Backup</span> <span id="pulseBackupStatus">--</span>
+                            <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; align-items: center; text-align: center;">
+                                <span style="text-align: left;">Backup</span> 
+                                <span id="pulseBackupInfra">--</span>
+                                <span id="pulseBackupScript">--</span>
                             </div>
                         </div>
                     </div>

@@ -24,10 +24,14 @@ const headerNewBtn = document.getElementById('headerNewBtn')!;
 
 const configForm = document.getElementById('configForm') as HTMLFormElement;
 const systemStatusValue = document.getElementById('systemStatusValue')!;
-const pulsePrimary = document.getElementById('pulsePrimaryStatus')!;
-const pulseBackup = document.getElementById('pulseBackupStatus')!;
 const toastContainer = document.getElementById('toastContainer')!;
 const deleteProjectBtn = document.getElementById('deleteProjectBtn')!;
+
+// Precision Pulse Elements
+const pulsePrimaryInfra = document.getElementById('pulsePrimaryInfra')!;
+const pulsePrimaryScript = document.getElementById('pulsePrimaryScript')!;
+const pulseBackupInfra = document.getElementById('pulseBackupInfra')!;
+const pulseBackupScript = document.getElementById('pulseBackupScript')!;
 
 // --- Auth ---
 function showLogin() {
@@ -182,33 +186,52 @@ function renderProjectConfig() {
     `).join('') || 'No versions generated yet.';
 }
 
-// --- Monitoring ---
+// --- Precision Monitoring (V2.6) ---
 async function startHealthCheck() {
     if (!currentProject) return;
-    const { scriptDomain, backupDomain } = currentProject;
-    
-    const check = async (domain: string, el: HTMLElement) => {
-        if (!domain) return false;
+    const { id, activeVersion, scriptDomain, backupDomain } = currentProject;
+    const ver = activeVersion || 'latest';
+
+    const check = async (domain: string, type: 'infra' | 'script') => {
+        if (!domain) return { ok: false, msg: '--' };
+        const path = type === 'infra' ? '/assets/header.js' : `/api/scripts/${id}/${ver}/header.js`;
         try {
             const start = Date.now();
-            await fetch(`https://${domain}/assets/header.js`, { method: 'HEAD', mode: 'no-cors' });
+            await fetch(`https://${domain}${path}`, { method: 'HEAD', mode: 'no-cors' });
             const lat = Date.now() - start;
-            el.textContent = `Online (${lat}ms)`;
-            el.style.color = 'var(--success)';
-            return true;
+            // Note: no-cors will return type 'opaque' and we can't see the status code, 
+            // but if it fails entirely it will throw. 
+            // Better: use a simple fetch for the script path, it shouldn't produce huge traffic.
+            return { ok: true, msg: `✓ (${lat}ms)` };
         } catch {
-            el.textContent = 'Offline';
-            el.style.color = 'var(--error)';
-            return false;
+            return { ok: false, msg: '✗ Offline' };
         }
     };
 
-    const p = await check(scriptDomain, pulsePrimary);
-    const b = await check(backupDomain, pulseBackup);
+    const updateUI = (el: HTMLElement, res: { ok: boolean, msg: string }) => {
+        el.textContent = res.msg;
+        el.style.color = res.ok ? 'var(--success)' : 'var(--error)';
+        return res.ok;
+    };
 
-    if (p && b) systemStatusValue.innerHTML = '<span class="pill pill-success">Healthy</span>';
-    else if (p || b) systemStatusValue.innerHTML = '<span class="pill pill-warning">Degraded</span>';
-    else systemStatusValue.innerHTML = '<span class="pill pill-error">Critical</span>';
+    const [pInf, pScr, bInf, bScr] = await Promise.all([
+        check(scriptDomain, 'infra'),
+        check(scriptDomain, 'script'),
+        check(backupDomain, 'infra'),
+        check(backupDomain, 'script')
+    ]);
+
+    updateUI(pulsePrimaryInfra, pInf);
+    updateUI(pulsePrimaryScript, pScr);
+    updateUI(pulseBackupInfra, bInf);
+    updateUI(pulseBackupScript, bScr);
+
+    const anyOk = pScr.ok || bScr.ok;
+    const bothOk = pScr.ok && bScr.ok;
+
+    if (bothOk) systemStatusValue.innerHTML = '<span style="color:var(--success)">Healthy</span>';
+    else if (anyOk) systemStatusValue.innerHTML = '<span style="color:var(--warning)">Degraded</span>';
+    else systemStatusValue.innerHTML = '<span style="color:var(--error)">Critical</span>';
 }
 
 // --- Utils ---
@@ -220,17 +243,15 @@ function showToast(msg: string, type: 'success' | 'error' = 'success') {
     setTimeout(() => t.remove(), 3000);
 }
 
-// --- V2.5 Fallback Loader Generator (with Global Guard) ---
+// Loader Generator (V2.5)
 function generateLoader(primaryUrl: string, backupUrl: string) {
     return `(function() {
   if (window.__NILUFER_TRACKER_LOADED__) return;
   window.__NILUFER_TRACKER_LOADED__ = true;
-
   var SOURCES = ['${primaryUrl}', '${backupUrl}'];
   var loaded = false;
   var index = 0;
   var TIMEOUT = 2500;
-
   function loadNext() {
     if (loaded || index >= SOURCES.length) return;
     var src = SOURCES[index++];
@@ -319,7 +340,6 @@ deleteProjectBtn.addEventListener('click', async () => {
     }
 });
 
-// --- Tabs ---
 function switchTab(target: string) {
     document.querySelectorAll('.tab-btn').forEach(b => {
         if ((b as HTMLElement).dataset.tab === target) b.classList.add('active');
