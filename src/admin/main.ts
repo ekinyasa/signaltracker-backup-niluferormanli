@@ -197,12 +197,14 @@ async function startHealthCheck() {
         const path = type === 'infra' ? '/assets/header.js' : `/api/scripts/${id}/${ver}/header.js`;
         try {
             const start = Date.now();
-            await fetch(`https://${domain}${path}`, { method: 'HEAD', mode: 'no-cors' });
+            const res = await fetch(`https://${domain}${path}`, { method: 'HEAD' });
             const lat = Date.now() - start;
-            // Note: no-cors will return type 'opaque' and we can't see the status code, 
-            // but if it fails entirely it will throw. 
-            // Better: use a simple fetch for the script path, it shouldn't produce huge traffic.
-            return { ok: true, msg: `✓ (${lat}ms)` };
+            
+            if (res.ok) {
+                return { ok: true, msg: `✓ (${lat}ms)` };
+            } else {
+                return { ok: false, msg: `✗ ${res.status}` };
+            }
         } catch {
             return { ok: false, msg: '✗ Offline' };
         }
