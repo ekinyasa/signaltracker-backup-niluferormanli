@@ -31,7 +31,7 @@ export const onRequest: PagesFunction = async (context) => {
     // }
 
     // Update local KV
-    const kv = env.SIGNAL_KV;
+    const kv = env.SIGNAL_CONFIG_KV_NILUFER as KVNamespace;
     await kv.put(`signal_project_${project.id}`, JSON.stringify(project));
 
     // Also update the global project list if not present

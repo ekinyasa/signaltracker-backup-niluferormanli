@@ -15,7 +15,7 @@ export const onRequest: PagesFunction = async (context) => {
     }
 
     // 1. Get current config from KV
-    const kv = env.SIGNAL_KV as KVNamespace;
+    const kv = env.SIGNAL_CONFIG_KV_NILUFER as KVNamespace;
     const configRaw = await kv.get(`signal_project_${projectId}`);
     if (!configRaw) {
       return new Response(JSON.stringify({ error: 'Project not found' }), { status: 404 });
