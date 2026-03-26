@@ -1,24 +1,22 @@
-# Walkthrough - Signal-Path Platform (V2.6 Precision Monitoring)
+# Walkthrough - Signal-Path Platform (V2.7 Precision Fix)
 
-Version **2.6** introduces granular health monitoring to ensure your tracking scripts are not just "hosted" but actually "reachable" at their unique paths.
+Version **2.7** solves the issue of false-positive health checks by introducing strict HTTP status verification.
 
-## Key Improvements in V2.6
+## Key Technical Fixes in V2.6
 
-### 1. Precision Pulse UI
-- **Dual Validation**: The "Tracking Pulse" card now shows two status columns for both Primary and Backup CDNs.
-- **Server Status**: Confirms the underlying infrastructure and CDN are responding.
-- **Script Status**: Confirms that the specific project and version you are managing exists and is ready to be served.
+### 1. Strict HTTP Validation
+- **Problem**: Previous versions used `no-cors` mode, which couldn't detect 404 errors (it reported `✓` as long as the server responded, even with an error).
+- **Solution**: We enabled **CORS** (Cross-Origin Resource Sharing) on all script endpoints and updated the dashboard to check for a strict `200 OK` response.
+- **Accuracy**: If a script is missing (404), the dashboard will now explicitly show `✗ 404`.
 
-### 2. Intelligent Status States
-- **Healthy**: Both your Primary and Backup script paths are reachable.
-- **Degraded**: At least one script path is reachable, but one is failing (e.g., Primary is down, Backup is serving).
-- **Critical**: No script paths are reachable. Even if the server is "Online", if the script path returns 404, it will show "Critical".
+### 2. Infrastructure (CORS Headers)
+- **Implementation**: Added a `_headers` file to the Cloudflare Pages deployment to allow the Admin Panel to safely query the status of scripts across different domains.
 
-## How to use V2.6 Monitoring
-1. Look at the **Dashboard** (Monitoring tab).
-2. Check the **Server** column: If green, your infrastructure is up.
-3. Check the **Script** column: If green, your project-specific tracking code is active and reachable by Kartra.
+## How to use V2.7 Monitoring
+1. Look at the **Tracking Pulse** card.
+2. If you see `✓ (ms)`, the script is definitely there and ready.
+3. If you see `✗ 404`, the server is up but the specific script for that project/version is missing.
 
 ## Verification
-- Version: `V2.6 | Hash`
-- Try switching projects: The "Script" column will re-verify the full path for the newly selected project version.
+- Version: `V2.7 | Hash`
+- Status: 404 errors are now correctly caught and displayed in red.
