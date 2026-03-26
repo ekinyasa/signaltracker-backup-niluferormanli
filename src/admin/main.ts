@@ -318,7 +318,7 @@ function generateLoader(primaryUrl: string, backupUrl: string) {
 
 function updateSnippets() {
     if (!currentProject) return;
-    const ver = currentProject.activeVersion || 'latest';
+    const ver = 'latest'; // Force latest for dynamic updates without manual snippet replacement
     const primaryBase = `https://${currentProject.scriptDomain || 'scripts.domain.com'}/api/scripts/${currentProject.id}/${ver}`;
     const backupBase = `https://${currentProject.backupDomain || 'backup.domain.com'}/api/scripts/${currentProject.id}/${ver}`;
     
