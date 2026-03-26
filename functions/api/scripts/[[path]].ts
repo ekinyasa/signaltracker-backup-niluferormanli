@@ -47,6 +47,6 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
   `;
 
   return new Response(js, {
-    headers: { 'Content-Type': 'application/javascript', 'Cache-Control': 'public, max-age=3600' }
+    headers: { 'Content-Type': 'application/javascript', 'Cache-Control': 'no-store' }
   });
 };
