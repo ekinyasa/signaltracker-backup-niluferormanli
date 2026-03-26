@@ -262,6 +262,7 @@ promoteBtn.addEventListener('click', async () => {
         } else {
             const raw = await res.text();
             data = { success: false, error: 'Raw Response', details: raw };
+            alert('Cloudflare Server Error (500):\n\n' + raw.slice(0, 1000));
         }
 
         console.log('[Promote Debug]', data);
