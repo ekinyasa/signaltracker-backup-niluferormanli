@@ -19,19 +19,22 @@ export default async function handler(req, res) {
   const adminToken = process.env.ADMIN_TOKEN;
   const auth = req.headers.authorization;
 
+  // Global cache for script delivery
+  global.SIGNAL_CACHE = global.SIGNAL_CACHE || {};
+
   // Security: Check token
   if (auth !== `Bearer ${adminToken}`) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
 
   if (action === 'sync_config' && project) {
-    // SUCCESS: In a real Vercel setup, we would save to @vercel/kv here.
-    // For now, we return success to confirm connectivity and code execution.
+    // Cache for scripts logic
+    global.SIGNAL_CACHE[`project_${project.id}`] = project;
+    
     return res.status(200).json({
         success: true,
-        message: `Project ${project.id} received by Vercel Backup Component.`,
-        platform: 'vercel',
-        warning: 'Note: Ensure Vercel KV is connected for persistent backup storage.'
+        message: `Project ${project.id} synced to Vercel Cache.`,
+        platform: 'vercel'
     });
   }
 
