@@ -1,23 +1,24 @@
-# Walkthrough - Signal-Path Platform (V2.5 Armor Plated)
+# Walkthrough - Signal-Path Platform (V2.6 Precision Monitoring)
 
-Version **2.5** adds an extra layer of protection called "Global Guard" to prevent common tracking errors like double-counting.
+Version **2.6** introduces granular health monitoring to ensure your tracking scripts are not just "hosted" but actually "reachable" at their unique paths.
 
-## New Features in V2.5
+## Key Improvements in V2.6
 
-### 1. Global Guard (Double-Loading Protection)
-- **Problem**: If the tracking script is accidentally added to a page twice (e.g., once in a master template and once in a specific page), it usually fires events twice, ruining your data.
-- **Solution**: Both our **Loader** and our **Main Script** now check for a global variable `__NILUFER_TRACKER_LOADED__`. If it exists, the second instance terminates immediately.
-- **Safe Execution**: Your data remains clean even if the embed code is duplicated.
+### 1. Precision Pulse UI
+- **Dual Validation**: The "Tracking Pulse" card now shows two status columns for both Primary and Backup CDNs.
+- **Server Status**: Confirms the underlying infrastructure and CDN are responding.
+- **Script Status**: Confirms that the specific project and version you are managing exists and is ready to be served.
 
-### 2. Sniper-Correct Snippets
-- **Clarification**: When copying from the **Snippets** tab, you must copy the **entire block** (including the `(function() { ... })();` wrapper).
-- **Functionality**: This entire block contains the logic to:
-  - Check for double-loading.
-  - Try the Primary CDN.
-  - Fall back to the Backup CDN if needed.
-  - Inject the scripts asynchronously.
+### 2. Intelligent Status States
+- **Healthy**: Both your Primary and Backup script paths are reachable.
+- **Degraded**: At least one script path is reachable, but one is failing (e.g., Primary is down, Backup is serving).
+- **Critical**: No script paths are reachable. Even if the server is "Online", if the script path returns 404, it will show "Critical".
 
-## Deployment Status
-- **Current Version**: `V2.5 | Hash`
-- **Integrity**: Standard GA4 / Meta Pixel requirements are fully met.
-- **Kartra Compatibility**: Confirmed for "Scripts" section.
+## How to use V2.6 Monitoring
+1. Look at the **Dashboard** (Monitoring tab).
+2. Check the **Server** column: If green, your infrastructure is up.
+3. Check the **Script** column: If green, your project-specific tracking code is active and reachable by Kartra.
+
+## Verification
+- Version: `V2.6 | Hash`
+- Try switching projects: The "Script" column will re-verify the full path for the newly selected project version.
