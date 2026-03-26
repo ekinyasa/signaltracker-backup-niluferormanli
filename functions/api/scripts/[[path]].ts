@@ -40,6 +40,7 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
       
       // Load the actual logic script (compiled by Vite)
       const s = document.createElement('script');
+      s.type = 'module';
       s.src = 'https://' + window.COS_CONFIG.scriptDomain + '/assets/' + '${scriptType}' + '.js'; 
       s.async = true;
       document.head.appendChild(s);
