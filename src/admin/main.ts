@@ -194,20 +194,22 @@ async function startHealthCheck() {
 
     const check = async (domain: string, type: 'infra' | 'script') => {
         if (!domain) return { ok: false, msg: '--' };
-        // V2.8: Infra uses official /api/health with CORS
         const path = type === 'infra' ? '/api/health' : `/api/scripts/${id}/${ver}/header.js`;
+        const target = `https://${domain}${path}`;
+        
         try {
-            const start = Date.now();
-            const res = await fetch(`https://${domain}${path}`, { method: 'HEAD' });
-            const lat = Date.now() - start;
+            // V2.9: Server-to-Server proxy to bypass CORS
+            const res = await fetch(`/api/status?target=${encodeURIComponent(target)}`, {
+                headers: { 'Authorization': `Bearer ${currentToken}` }
+            });
+            const data = await res.json();
             
-            if (res.ok) {
-                return { ok: true, msg: `✓ (${lat}ms)` };
+            if (data.ok) {
+                return { ok: true, msg: `✓ (${data.latency}ms)` };
             } else {
-                return { ok: false, msg: `✗ ${res.status}` };
+                return { ok: false, msg: `✗ ${data.status}` };
             }
         } catch (e) {
-            // Likely CORS or Network error on backup
             return { ok: false, msg: '✗ Offline' };
         }
     };
