@@ -255,14 +255,17 @@ promoteBtn.addEventListener('click', async () => {
             headers: { 'Authorization': `Bearer ${currentToken}` }
         });
         const data = await res.json();
+        console.log('[Promote Debug]', data);
         
         if (data.success) {
             showToast('Promoted to Backup Successfully');
         } else {
-            showToast(`Promotion failed: ${data.error || 'Check webhook'}`, 'error');
+            showToast(`Promotion failed (Status ${data.status || res.status})`, 'error');
+            console.error('Promotion Error Details:', data);
         }
     } catch (e) {
         showToast('Network error during promotion', 'error');
+        console.error('Promote Network Error:', e);
     } finally {
         promoteBtn.disabled = false;
         promoteBtn.textContent = '🚀 Promote to Backup';

@@ -42,21 +42,32 @@ export const onRequest: PagesFunction = async (context) => {
       })
     });
 
-    const isJson = backupRes.headers.get('content-type')?.includes('application/json');
-    const backupData = isJson ? await backupRes.json() : await backupRes.text();
+    let backupData;
+    try {
+        const isJson = backupRes.headers.get('content-type')?.includes('application/json');
+        backupData = isJson ? await backupRes.json() : await backupRes.text();
+    } catch (parseError) {
+        backupData = "Could not parse backup response";
+    }
 
     return new Response(JSON.stringify({
       success: backupRes.ok,
       status: backupRes.status,
-      backup_response: backupData
+      backup_response: backupData,
+      debug: {
+          webhook: backupWebhook,
+          has_key: !!backupDeployKey,
+          has_token: !!env.ADMIN_TOKEN
+      }
     }), {
       headers: { 'Content-Type': 'application/json' }
     });
   } catch (e) {
     return new Response(JSON.stringify({
       success: false,
-      error: 'Failed to reach backup webhook',
-      details: String(e)
+      error: 'CRITICAL_FETCH_FAILURE',
+      message: String(e),
+      context: { webhook: backupWebhook }
     }), { status: 500, headers: { 'Content-Type': 'application/json' } });
   }
 };
