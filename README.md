@@ -1,24 +1,28 @@
-# Walkthrough - Signal-Path Platform (V2.9 Server-to-Server Monitoring)
+# Walkthrough - Signal-Path Platform (V3.0 Promote Flow)
 
-Version **2.9** introduces the most robust monitoring architecture possible by moving health checks from your browser to the Primary Server backend.
+Version **3.0** evolves the platform into an orchestrator with the new "Promote" flow, enabling one-click synchronization between your Primary and Backup servers.
 
-## Key Technical Upgrades in V2.9
+## Key Features in V3.0
 
-### 1. Server-to-Server Proxy (`/api/status`)
-- **Bye-Bye CORS**: We no longer rely on your browser to "ping" the backup server. Browsers often block these requests for security (CORS), leading to false "Offline" reports.
-- **Backend Power**: Our Primary Cloudflare server now directly talks to the Backup server. Since this is a server-to-server communication, it is never blocked by browser security policies.
-- **Accuracy**: You get the real HTTP status (200, 404, 500) and the real server-to-server latency.
+### 1. Promoting Config to Backup
+- **The Problem**: Previously, you had to manually ensure the Backup server had the same project configuration as the Primary.
+- **The Solution**: We've added a **"🚀 Promote to Backup"** button. When clicked, the Primary server securely pushes its current configuration to the Backup server's webhook.
+- **Automation**: This can also be used to trigger external CI/CD pipelines (like Vercel Deploy Hooks).
 
-### 2. Universal Monitoring
-- **Platform Agnostic**: It doesn't matter if your backup is on Vercel, Netlify, or a private VPS. If our primary server can reach it, the dashboard shows it as `✓ Online`.
-- **Zero Configuration**: You no longer need to set up complex CORS headers (`vercel.json`, etc.) just for the health check to work.
+### 2. Backup Webhook & Sync Security
+- **Configurable**: In the **Configuration** tab, you can now set a `Backup Webhook` (e.g., `https://backup.yoursite.com/api/sync`).
+- **Secure**: You can define a `Backup Deploy Key` to ensure only your authorized Primary server can push updates to the Backup.
 
-## How to use V2.9 Monitoring
-1. Check the **Tracking Pulse** card on the dashboard.
-2. The results you see are now fetched by our backend.
-3. If the **Server** column is green, the backup infrastructure is reachable from our main engine.
-4. If the **Script** column is green, the specific tracking file is verified to exist on the backup.
+### 3. Cross-Server Synchronization (`/api/sync`)
+- Every Signal-Path instance now has a built-in receiver at `/api/sync` that listens for promotion requests and automatically updates its local database.
+
+## How to use V3.0 Promote Flow
+1. Go to the **Configuration** tab for your project.
+2. Enter your **Backup Webhook URL** (usually your backup domain + `/api/sync`).
+3. Click "Save & Deploy".
+4. Go to the **Dashboard** and click **"🚀 Promote to Backup"**.
+5. Check your **Tracking Pulse**: The Backup "Script" status should turn green almost immediately!
 
 ## Verification
-- Version: `V2.9 | Hash`
-- Reliability: This method works even in browsers with strict privacy settings or "incognito" mode.
+- Version: `V3.0 | Hash`
+- Status: Server-to-Server health checks and Promoting are fully operational.
