@@ -239,7 +239,7 @@
                 <button class="tab-btn active" data-tab="dashboard">Monitoring</button>
                 <button class="tab-btn" data-tab="config">Configuration</button>
                 <button class="tab-btn" data-tab="snippets">Snippets</button>
-                <button class="tab-btn" data-tab="guide">Manual</button>
+                <button class="tab-btn" data-tab="manual">Manual</button>
             </nav>
 
             <!-- Dashboard -->
@@ -396,6 +396,41 @@
 
                     <h3 style="font-size: 0.9rem; margin-top: 1.5rem;">Step 3: Embed Scripts</h3>
                     <p style="font-size: 0.8125rem; color: var(--text-muted);">Copy the snippets to your funnel pages. Header goes on every page, Thank-you only on the final success page.</p>
+                </div>
+            </section>
+            <!-- Manual (Instructions) -->
+            <section id="tab-manual" class="hidden">
+                <div class="card">
+                    <div class="card-label">Setup Instructions (V3.1)</div>
+                    <div style="font-size: 0.85rem; line-height: 1.6;">
+                        <h4 style="color: var(--primary); margin: 1rem 0 0.5rem;">1. Environment Variables</h4>
+                        <p>Every instance (Primary & Backup) requires the <code>ADMIN_TOKEN</code> secret.</p>
+                        <ul>
+                            <li><strong>Cloudflare:</strong> Settings > Functions > Variables > Add <code>ADMIN_TOKEN</code>.</li>
+                            <li><strong>Vercel:</strong> Settings > Environment Variables > Add <code>ADMIN_TOKEN</code>.</li>
+                        </ul>
+                        <p style="margin-top:0.5rem; font-style:italic;">Note: Both tokens should be identical for easy sync.</p>
+
+                        <h4 style="color: var(--primary); margin: 1.5rem 0 0.5rem;">2. Backup Domain Config (Vercel)</h4>
+                        <p>To use Vercel as a backup:</p>
+                        <ul>
+                            <li>Import your <strong>signaltracker-backup</strong> repo to Vercel.</li>
+                            <li>Add your custom domain (e.g., <code>signals.niluferormanlistudio.com</code>).</li>
+                            <li>Set the Webhook URL in <strong>Configuration</strong> tab to: <code>https://signals.niluferormanlistudio.com/api/sync</code></li>
+                        </ul>
+
+                        <h4 style="color: var(--primary); margin: 1.5rem 0 0.5rem;">3. Promoting Config</h4>
+                        <p>When you update a project on the Primary server:</p>
+                        <ul>
+                            <li>Click "Save & Deploy" on the Primary panel.</li>
+                            <li>Go to Dashboard/Snippets and click the <strong>🚀 Promote to Backup</strong> button.</li>
+                            <li>The Primary server will securely send the config to the Backup server via the <code>/api/sync</code> endpoint.</li>
+                        </ul>
+
+                        <div style="background: rgba(var(--primary-rgb), 0.1); padding: 1rem; border-radius: 8px; margin-top: 1.5rem; border: 1px solid var(--primary);">
+                            <strong>Pro Tip:</strong> Ensure your Backup repo stays synced with the <code>main</code> branch of this repo to receive the latest V3.1+ monitoring and sync features.
+                        </div>
+                    </div>
                 </div>
             </section>
         </div>
