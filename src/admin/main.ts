@@ -26,6 +26,7 @@ const configForm = document.getElementById('configForm') as HTMLFormElement;
 const systemStatusValue = document.getElementById('systemStatusValue')!;
 const toastContainer = document.getElementById('toastContainer')!;
 const deleteProjectBtn = document.getElementById('deleteProjectBtn')!;
+const promoteBtn = document.getElementById('promoteBtn') as HTMLButtonElement;
 
 // Precision Pulse Elements
 const pulsePrimaryInfra = document.getElementById('pulsePrimaryInfra')!;
@@ -173,6 +174,8 @@ function renderProjectConfig() {
     (document.getElementById('siteDomain') as HTMLInputElement).value = currentProject.siteDomain || '';
     (document.getElementById('scriptDomain') as HTMLInputElement).value = currentProject.scriptDomain || '';
     (document.getElementById('backupDomain') as HTMLInputElement).value = currentProject.backupDomain || '';
+    (document.getElementById('backupWebhook') as HTMLInputElement).value = currentProject.backupWebhook || '';
+    (document.getElementById('backupDeployKey') as HTMLInputElement).value = currentProject.backupDeployKey || '';
     (document.getElementById('preset') as HTMLSelectElement).value = currentProject.preset || 'kartra_standard';
     (document.getElementById('projectId') as HTMLInputElement).value = currentProject.id;
     (document.getElementById('ttlDays') as HTMLInputElement).value = (currentProject.ttlDays || 7).toString();
@@ -186,7 +189,7 @@ function renderProjectConfig() {
     `).join('') || 'No versions generated yet.';
 }
 
-// --- Precision Monitoring (V2.6) ---
+// --- Monitoring ---
 async function startHealthCheck() {
     if (!currentProject) return;
     const { id, activeVersion, scriptDomain, backupDomain } = currentProject;
@@ -194,6 +197,7 @@ async function startHealthCheck() {
 
     const check = async (domain: string, type: 'infra' | 'script') => {
         if (!domain) return { ok: false, msg: '--' };
+        // V2.8: Infra uses official /api/health with CORS
         const path = type === 'infra' ? '/api/health' : `/api/scripts/${id}/${ver}/header.js`;
         const target = `https://${domain}${path}`;
         
@@ -239,6 +243,32 @@ async function startHealthCheck() {
     else if (anyOk) systemStatusValue.innerHTML = '<span style="color:var(--warning)">Degraded</span>';
     else systemStatusValue.innerHTML = '<span style="color:var(--error)">Critical</span>';
 }
+
+// --- Sync & Promote (V3.0) ---
+promoteBtn.addEventListener('click', async () => {
+    if (!currentProject) return;
+    promoteBtn.disabled = true;
+    promoteBtn.textContent = 'Promoting...';
+    
+    try {
+        const res = await fetch(`/api/promote?project=${currentProject.id}`, {
+            headers: { 'Authorization': `Bearer ${currentToken}` }
+        });
+        const data = await res.json();
+        
+        if (data.success) {
+            showToast('Promoted to Backup Successfully');
+        } else {
+            showToast(`Promotion failed: ${data.error || 'Check webhook'}`, 'error');
+        }
+    } catch (e) {
+        showToast('Network error during promotion', 'error');
+    } finally {
+        promoteBtn.disabled = false;
+        promoteBtn.textContent = '🚀 Promote to Backup';
+        startHealthCheck();
+    }
+});
 
 // --- Utils ---
 function showToast(msg: string, type: 'success' | 'error' = 'success') {
@@ -302,7 +332,7 @@ configForm.addEventListener('submit', async (e) => {
         }
     }
 
-    const data = {
+    const data: Partial<ProjectConfig> = {
         id, name,
         gaId: (document.getElementById('gaId') as HTMLInputElement).value,
         pixelId: (document.getElementById('pixelId') as HTMLInputElement).value,
@@ -310,7 +340,9 @@ configForm.addEventListener('submit', async (e) => {
         siteDomain: (document.getElementById('siteDomain') as HTMLInputElement).value,
         scriptDomain: (document.getElementById('scriptDomain') as HTMLInputElement).value,
         backupDomain: (document.getElementById('backupDomain') as HTMLInputElement).value,
-        preset: (document.getElementById('preset') as HTMLSelectElement).value,
+        backupWebhook: (document.getElementById('backupWebhook') as HTMLInputElement).value,
+        backupDeployKey: (document.getElementById('backupDeployKey') as HTMLInputElement).value,
+        preset: (document.getElementById('preset') as HTMLSelectElement).value as any,
         ttlDays: parseInt((document.getElementById('ttlDays') as HTMLInputElement).value) || 7,
     };
 

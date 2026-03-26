@@ -6,6 +6,8 @@ export interface ProjectConfig {
     siteDomain: string;
     scriptDomain: string;
     backupDomain: string;
+    backupWebhook?: string;
+    backupDeployKey?: string;
     gaId?: string;
     pixelId?: string;
     fbVerifyId?: string;

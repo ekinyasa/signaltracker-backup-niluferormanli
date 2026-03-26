@@ -271,6 +271,10 @@
                         <div class="card-label">Active Build</div>
                         <div style="font-size: 0.9rem; font-weight:600; color:var(--accent);" id="topVersion">---</div>
                     </div>
+                    <div class="card">
+                        <div class="card-label">Promotion</div>
+                        <button id="promoteBtn" class="btn btn-primary" style="background: var(--primary); width: 100%; border-radius: 8px; font-weight: 600; border: none; padding: 0.8rem; cursor: pointer; color: white;">🚀 Promote to Backup</button>
+                    </div>
                 </div>
 
                 <div class="card">
@@ -324,6 +328,16 @@
                             <div class="input-group" style="margin-bottom: 0;">
                                 <label>Backup CDN</label>
                                 <input type="text" id="backupDomain" placeholder="backup.domain.com" required>
+                            </div>
+                        </div>
+                        <div class="grid" style="grid-template-columns: 1fr 1fr; margin-top: 1.25rem; margin-bottom: 0;">
+                            <div class="input-group" style="margin-bottom: 0;">
+                                <label>Backup Webhook (Sync URL)</label>
+                                <input type="text" id="backupWebhook" placeholder="https://backup.domain.com/api/status">
+                            </div>
+                            <div class="input-group" style="margin-bottom: 0;">
+                                <label>Backup Deploy Key</label>
+                                <input type="password" id="backupDeployKey" placeholder="Project sync secret">
                             </div>
                         </div>
                     </div>
