@@ -16,7 +16,7 @@ const getBuildId = () => {
 
 export default defineConfig({
   define: {
-    __APP_VERSION__: JSON.stringify('V2.7'),
+    __APP_VERSION__: JSON.stringify('V2.8'),
     __BUILD_ID__: JSON.stringify(getBuildId()),
   },
   build: {

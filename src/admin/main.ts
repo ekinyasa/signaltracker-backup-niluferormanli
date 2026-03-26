@@ -194,7 +194,8 @@ async function startHealthCheck() {
 
     const check = async (domain: string, type: 'infra' | 'script') => {
         if (!domain) return { ok: false, msg: '--' };
-        const path = type === 'infra' ? '/assets/header.js' : `/api/scripts/${id}/${ver}/header.js`;
+        // V2.8: Infra uses official /api/health with CORS
+        const path = type === 'infra' ? '/api/health' : `/api/scripts/${id}/${ver}/header.js`;
         try {
             const start = Date.now();
             const res = await fetch(`https://${domain}${path}`, { method: 'HEAD' });
@@ -205,7 +206,8 @@ async function startHealthCheck() {
             } else {
                 return { ok: false, msg: `✗ ${res.status}` };
             }
-        } catch {
+        } catch (e) {
+            // Likely CORS or Network error on backup
             return { ok: false, msg: '✗ Offline' };
         }
     };
